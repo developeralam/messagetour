@@ -95,6 +95,26 @@ Route::middleware(Admin::class)->prefix('admin')->name('.admin')->group(function
 
         return redirect('/admin/login');
     });
+
+    // Other Transcation Routes
+    Route::prefix('others-transcaiton')->group(function () {
+        Volt::route('/create', 'admin.otherstranscation.create');
+        Volt::route('/list', 'admin.otherstranscation.list');
+    });
+
+    Route::prefix('accounts')->group(function () {
+        Volt::route('/chart-of-account-category', 'admin.accounts.chartofaccountcategory');
+        Volt::route('/chart-of-account', 'admin.accounts.chartofaccount');
+
+        // Report Route
+        Route::prefix('reports')->group(function () {
+            Volt::route('/trail-balance', 'admin.accounts.report.trailbalance');
+            Volt::route('/balance-sheet', 'admin.accounts.report.balancesheet');
+            Route::get('ledger-print-report/{category_id}/{from_date}/{to_date}', [PdfController::class, 'chart_of_account'])->name('ledger-print-report');
+            Route::get('ledger-category-print-report/{category_id}/{from_date}/{to_date}', [PdfController::class, 'chart_of_account_category'])->name('ledger-category-print-report');
+        });
+    });
+
     // Invoice Routes
     Route::get('/corporate-query/{query}', [PDFController::class, 'customer_corporate_query']);
     Route::get('/order/{order}/invoice', [PDFController::class, 'order_invoice']);

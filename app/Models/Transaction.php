@@ -12,6 +12,8 @@ class Transaction extends Model
 {
     use SoftDeletes;
 
+    protected $table = 'transaction'; // Change this to your actual table name
+
     /**
      * The attributes that are mass assignable.
      *

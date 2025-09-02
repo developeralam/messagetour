@@ -14,6 +14,7 @@ use Database\Seeders\UserSeeder;
 use Database\Seeders\CountrySeeder;
 use Database\Seeders\AminitiesSeeder;
 use Database\Seeders\PermissionSeeder;
+use Database\Seeders\ChartOfAccountSeeder;
 use Database\Seeders\PaymentGatewaySeeder;
 
 class DatabaseSeeder extends Seeder
@@ -28,6 +29,7 @@ class DatabaseSeeder extends Seeder
         $this->call(PermissionSeeder::class);
         $this->call(PaymentGatewaySeeder::class);
         $this->call(CountrySeeder::class);
+        $this->call(ChartOfAccountSeeder::class);
 
         // Bulk Hotel Insert
         Hotel::factory()->count(50)->create();

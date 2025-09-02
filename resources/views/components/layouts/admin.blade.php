@@ -243,6 +243,43 @@
                     <x-menu-separator />
                 @endcan
 
+                {{-- Other Transactions --}}
+                @php
+                    $showOtherTransactionsMenu =
+                        auth()->user()->can('voucher.list') || auth()->user()->can('voucher.create');
+                @endphp
+
+                @if ($showOtherTransactionsMenu)
+                    <x-menu-sub title="Other Transactions" icon="fas.money-bill-transfer" :open="request()->is('admin/others-transcaiton/create', 'admin/others-transcaiton/list')">
+                        @can('voucher.list')
+                            <x-menu-item title="Add New Voucher" icon="fas.plus"
+                                link="/admin/others-transcaiton/create" />
+                        @endcan
+
+                        @can('voucher.create')
+                            <x-menu-item title="Voucher List" icon="fas.list" link="/admin/others-transcaiton/list" />
+                        @endcan
+                    </x-menu-sub>
+                    <x-menu-separator />
+                @endif
+
+                @can('chart-of-account')
+                    {{-- Chart Of Account --}}
+                    <x-menu-sub title="Chart Of Account" icon="fas.book" :open="request()->is(
+                        'admin/accounts/chart-of-account-category',
+                        'admin/accounts/chart-of-account',
+                    )">
+                        <x-menu-item title="Category" icon="fas.list" link="/admin/accounts/chart-of-account-category" />
+                        <x-menu-item title="Account" icon="fas.list" link="/admin/accounts/chart-of-account" />
+                    </x-menu-sub>
+                    <x-menu-separator />
+                @endcan
+
+                @can('trial-balance')
+                    <x-menu-item title="Report" icon="far.file-lines" link="/admin/accounts/reports/trail-balance" />
+                    <x-menu-separator />
+                @endcan
+
                 @can('deposit_request')
                     {{-- Deposit Request --}}
                     <x-menu-item title="Deposit Request" icon="fas.money-bill-transfer" link="/admin/deposit-request" />

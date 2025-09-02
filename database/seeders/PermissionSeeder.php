@@ -37,6 +37,7 @@ class PermissionSeeder extends Seeder
             'contactus',
             'reviews',
             'bank-payment',
+            'chart-of-account',
             'deposit_request',
             'withdraw',
             'system-user-manage',
