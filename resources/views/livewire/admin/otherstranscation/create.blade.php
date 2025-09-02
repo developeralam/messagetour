@@ -100,7 +100,7 @@ new #[Layout('components.layouts.admin')] #[Title('Receive Customer Payment')] c
         <x-slot:actions>
             <x-button icon="fas.arrow-left" link="/admin/others-transcaiton/list" label="Payment List"
                 class="btn-primary btn-sm" />
-            </x-slot>
+        </x-slot>
     </x-header>
     <x-form wire:submit="storePayment">
         <x-card class="w-6/12" x-cloak>
@@ -116,7 +116,7 @@ new #[Layout('components.layouts.admin')] #[Title('Receive Customer Payment')] c
             <x-slot:actions>
                 <x-button class="btn-sm" label="Payment List" link="/admin/others-transcaiton/list" />
                 <x-button type="submit" label="Add Payment" spinner="storePayment" class="btn-sm btn-primary" />
-                </x-slot>
+            </x-slot>
         </x-card>
     </x-form>
 </div>

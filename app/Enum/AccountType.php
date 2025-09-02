@@ -6,8 +6,9 @@ enum AccountType: string
 {
     case Asset = 'asset';
     case Liability = 'liability';
-    case Expense = 'expense';
+    case Equity = 'equity';
     case Revenue = 'revenue';
+    case Expense = 'expense';
 
     public function label(): string
     {
@@ -16,6 +17,7 @@ enum AccountType: string
             self::Liability => 'Liability',
             self::Expense => 'Expense',
             self::Revenue => 'Revenue',
+            self::Equity => 'Equity',
         };
     }
 

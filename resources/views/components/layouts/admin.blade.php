@@ -280,6 +280,14 @@
                     <x-menu-separator />
                 @endcan
 
+                @can('income-expense')
+                    <x-menu-sub title="Income & Expense" icon="fas.list" :open="request()->is('admin/income/list', 'admin/expense/list')">
+                        <x-menu-item title="Incomes" icon="fas.list" link="/admin/income/list" />
+                        <x-menu-item title="Expenses" icon="fas.list" link="/admin/expense/list" />
+                    </x-menu-sub>
+                    <x-menu-separator />
+                @endcan
+
                 @can('deposit_request')
                     {{-- Deposit Request --}}
                     <x-menu-item title="Deposit Request" icon="fas.money-bill-transfer" link="/admin/deposit-request" />
