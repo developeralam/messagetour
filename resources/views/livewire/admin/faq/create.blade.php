@@ -1,0 +1,125 @@
+<?php
+
+use App\Models\Faq;
+use App\Models\Offer;
+use Mary\Traits\Toast;
+use Livewire\Volt\Component;
+use Livewire\Attributes\Rule;
+use Livewire\Attributes\Title;
+use Livewire\Attributes\Layout;
+
+new #[Layout('components.layouts.admin')] #[Title('Add FAQ')] class extends Component {
+    use Toast;
+
+    public $offers;
+
+    #[Rule('required')]
+    public $offer_id;
+
+    #[Rule('required')]
+    public $question;
+
+    #[Rule('required')]
+    public $answer;
+
+    /**
+     * Mount lifecycle hook.
+     * Initializes the component with default values for question and answer.
+     *
+     * @return void
+     */
+    public function mount(): void
+    {
+        $this->offers = Offer::select(['id', 'title'])->get();
+    }
+
+    /**
+     * Store a new FAQ entry in the database.
+     * Validates input data, creates a new record, and redirects on success.
+     *
+     * @return void
+     */
+    public function storeFaq(): void
+    {
+        // Validate the component's public properties (question, answer, etc.)
+        $this->validate();
+
+        try {
+            // Create a new FAQ record using the validated properties
+            Faq::create([
+                'offer_id' => $this->offer_id,
+                'question' => $this->question,
+                'answer' => $this->answer,
+                'created_by' => auth()->user()->id,
+            ]);
+
+            // Show success message and redirect to FAQ list page
+            $this->success('Faq Added Successfully', redirectTo: '/admin/faq/list');
+        } catch (\Throwable $th) {
+            // Catch any errors and display appropriate message
+            $this->error(env('APP_DEBUG', false) ? $th->getMessage() : 'Something went wrong');
+        }
+    }
+}; ?>
+
+<div>
+    @push('custom-script')
+        <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+    @endpush
+
+    <x-header title="Add New FAQ" size="text-xl" separator class="bg-white px-2 pt-2">
+        <x-slot:actions>
+            <x-button label="Back" link="/admin/faq/list" class="btn-sm btn-primary" icon="fas.arrow-left" />
+        </x-slot>
+    </x-header>
+    <x-form wire:submit="storeFaq">
+        <x-card x-cloak>
+            <x-choices wire:model="offer_id" :options="$offers" option-label="title" option-value="id"
+                placeholder="Select Offer" single label="Offer" required />
+            <div wire:ignore class="mt-2">
+                <label for="question" class="font-semibold text-sm">Question</label>
+                <textarea wire:model="question" id="question" cols="30" rows="10"></textarea>
+            </div>
+            @error('question')
+                <span class="text-red-500 font-normal text-sm">{{ $message }}</span>
+            @enderror
+
+            <div wire:ignore class="mt-2">
+                <label for="answer" class="font-semibold text-sm">Answer</label>
+                <textarea wire:model="answer" id="answer" cols="30" rows="10"></textarea>
+            </div>
+            @error('answer')
+                <span class="text-red-500 font-normal text-sm">{{ $message }}</span>
+            @enderror
+
+            <x-slot:actions>
+                <x-button label="Cancel" type="reset" class="btn-sm" />
+                <x-button type="submit" label="Save" class="btn-primary btn-sm" spinner="storeFaq" />
+            </x-slot>
+        </x-card>
+    </x-form>
+    @push('custom-script')
+        <script>
+            ClassicEditor
+                .create(document.querySelector('#question'))
+                .then(editor => {
+                    editor.model.document.on('change:data', () => {
+                        @this.set('question', editor.getData());
+                    })
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+            ClassicEditor
+                .create(document.querySelector('#answer'))
+                .then(editor => {
+                    editor.model.document.on('change:data', () => {
+                        @this.set('answer', editor.getData());
+                    })
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        </script>
+    @endpush
+</div>
