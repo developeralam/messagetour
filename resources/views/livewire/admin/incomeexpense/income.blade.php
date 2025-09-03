@@ -107,6 +107,7 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
                 'customer_id' => $this->customer_id,
                 'account_id' => $this->account_id,
                 'amount' => $this->amount,
+                'reference' => $this->reference,
                 'remarks' => $this->remarks,
             ]);
             TransactionService::recordTransaction([
@@ -220,6 +221,7 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
             <x-choices label="Accounts" wire:model="account_id" placeholder="Select Account" single required
                 option-label="name" option-value="id" :options="$accounts" />
             <x-input type="number" label="Amount" wire:model="amount" placeholder="Amount" required />
+            <x-input label="Reference" wire:model="reference" placeholder="Reference" />
             <x-input label="Remarks" wire:model="remarks" placeholder="Remarks" />
             <x-slot:actions>
                 <x-button label="Cancel" @click="$wire.createModal = false" class="btn-sm" />
