@@ -53,8 +53,8 @@
                                 </path>
                                 <polyline points="22,6 12,13 2,6"></polyline>
                             </svg>
-                            <a href="mailto:admin@flyvaly.com"
-                                class="ms-2 text-slate-300 hover:text-slate-200 text-xs md:text-sm">admin@flyvaly.com</a>
+                            <a href="mailto:admin@massagetourtravels.com"
+                                class="ms-2 text-slate-300 hover:text-slate-200 text-xs md:text-sm">admin@massagetourtravels.com</a>
                         </li>
                         <li class="inline-flex items-center self-end">
                             <ul class="list-none flex items-center">
@@ -113,7 +113,7 @@
             <!-- Logo -->
             <a href="/" class="flex items-center">
                 <img src="{{ $globalSettings->logo_link ?? '/logo.png' }}"
-                    class="h-9 md:h-10 lg:h-12 rounded-lg shadow-none" alt="Flyvaly Logo" />
+                    class="h-9 md:h-10 lg:h-12 rounded-lg shadow-none" alt=" Logo" />
             </a>
 
             <!-- Desktop Nav -->
@@ -249,7 +249,7 @@
 
             <a href="/" class="mb-6 flex items-center gap-2" @click="isOpen = false">
                 <img src="{{ $globalSettings->logo_link ?? '/logo.png' }}" class="h-12 rounded-lg shadow-none"
-                    alt="Flyvaly Logo" />
+                    alt=" Logo" />
             </a>
             <ul class="flex flex-col items-center w-full gap-1">
                 <li>
@@ -357,7 +357,7 @@
                                     <h5 class="tracking-[1px] text-gray-100 font-bold">Contact Us</h5>
                                     <h5
                                         class="tracking-[1px] text-gray-100 mt-4 text-sm lg:text-base whitespace-nowrap">
-                                        Flyvaly Tour &amp; Travels
+                                        {{ $globalSettings->application_name ?? 'Flyvaly Tour &amp; Travels' }}
                                     </h5>
 
                                     <div class="flex mt-2">
@@ -512,7 +512,7 @@
                         <div class="flex justify-center items-center mt-2">
                             <p class="text-gray-300 text-xs sm:text-base">Copyright &copy; {{ date('Y') }}. <a
                                     href="/"
-                                    class="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-green-400 italic">FLYVALY.</a>
+                                    class="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-green-400 italic">MassageTourTravels.</a>
                                 All Rights Reserved.
                             </p>
                         </div>

@@ -144,7 +144,7 @@ new #[Layout('components.layouts.service-details')] #[Title('Hotel List')] class
 
 <div class="bg-gray-100">
     <section
-        class="relative items-center bg-[url('https://flyvaly.com/assets/images/bg/home-bg.png')] bg-no-repeat bg-cover bg-center lg:py-20 md:py-10 z-10">
+        class="relative items-center bg-[url('https://massagetourtravels.com/assets/images/bg/home-bg.png')] bg-no-repeat bg-cover bg-center lg:py-20 md:py-10 z-10">
         <div class="absolute inset-0 bg-slate-900/40"></div>
         <div class="relative py-12 md:py-20">
             <div class="max-w-6xl mx-auto">

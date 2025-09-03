@@ -257,13 +257,14 @@ new #[Layout('components.layouts.app')] #[Title('Home')] class extends Component
                     <div class="lg:ms-8">
                         <h3 class="mb-3 md:mb-5 md:text-3xl text-2xl leading-normal font-semibold">
                             World Best
-                            Travel <br> Agency: Flyvaly</h3>
+                            Travel <br> Agency: {{ $globalSettings->application_name ?? 'Flyvaly' }}</h3>
 
                         <p class="text-slate-400 max-w-xl mb-3 md:mb-5 text-sm md:text-base">Get instant helpful
                             resources about anything on the go,
                             easily implement secure money transfer solutions, boost your daily efficiency, connect to
                             other app users
-                            and create your own Flyvaly network, and much more with just a few taps. commodo consequat.
+                            and create your own {{ $globalSettings->application_name ?? 'Flyvaly' }} network, and much
+                            more with just a few taps. commodo consequat.
                             Duis aute irure.</p>
 
                         <a href=""
@@ -291,7 +292,7 @@ new #[Layout('components.layouts.app')] #[Title('Home')] class extends Component
             <p class="text-slate-500 max-w-3xl mx-auto text-sm md:text-base text-center">Plan your dream
                 gateway
                 and choose from uncountable tour
-                packages at Flyvaly. Book
+                packages at {{ $globalSettings->application_name ?? 'Flyvaly' }}. Book
                 our holiday packages for the best deals on any international trip.</p>
             <div class="relative w-full max-w-6xl overflow-hidden">
                 <div class="owl-carousel tour-carousel">
@@ -345,7 +346,7 @@ new #[Layout('components.layouts.app')] #[Title('Home')] class extends Component
             <p class="text-slate-500 max-w-3xl mx-auto text-sm md:text-base text-center">Luxurious or
                 budget-friendly hotels,
                 villas or resorts,
-                browse accommodations at Flyvaly
+                browse accommodations at {{ $globalSettings->application_name ?? 'Flyvaly' }}
                 that meet the need. Book Long-term or short-term accommodation from our hotel deals</p>
             <div class="relative w-full max-w-6xl overflow-hidden">
                 <!-- Slider Track -->
@@ -397,7 +398,7 @@ new #[Layout('components.layouts.app')] #[Title('Home')] class extends Component
                 <!-- Left Text Content -->
                 <div class="w-full md:w-2/3">
                     <h2 class="text-2xl lg:text-3xl font-bold text-gray-900 shining-effect">
-                        Grow Your Business with FLYVALY
+                        Grow Your Business with {{ $globalSettings->application_name ?? 'FLYVALY' }}
                     </h2>
                     <p class="mt-2 text-gray-700 text-sm md:text-[16px] italic font-semibold">
                         Partner with us to reach more customers and expand your brand effortlessly.

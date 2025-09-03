@@ -181,17 +181,18 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class ex
                     <x-button icon="fas.print" wire:click="print({{ $account['id'] }})"
                         class="btn-primary btn-action text-white" />
                     <x-button icon="o-trash" wire:click="delete({{ $account['id'] }})" wire:confirm="Are you sure?"
-                        class="btn-primary btn-action text-white" />
+                        class="btn-error btn-action text-white" />
                     <x-button icon="s-pencil-square" wire:click="edit({{ $account['id'] }})"
-                        class="btn-primary btn-action text-white" />
+                        class="btn-neutral btn-action text-white" />
                 </div>
             @endscope
         </x-table>
     </x-card>
     <x-modal wire:model="createModal" title="Add New Chart Of Account" separator>
         <x-form wire:submit="storeChartOfAccount">
-            <x-select label="Type" wire:model.live="type" :options="$types" required placeholder="Select Type" />
-            <x-select label="Category" wire:model="parent_id" :options="$categories" required
+            <x-choices label="Type" wire:model.live="type" :options="$types" single required
+                placeholder="Select Type" />
+            <x-choices label="Category" wire:model="parent_id" :options="$categories" single required
                 placeholder="Select Category" />
             <x-input label="Account Name" wire:model="name" placeholder="Category Name" required />
             <x-slot:actions>
@@ -202,8 +203,9 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class ex
     </x-modal>
     <x-modal wire:model="editModal" title="Update {{ $account->name ?? '' }} Account" separator>
         <x-form wire:submit="updateChartOfAccount">
-            <x-select label="Type" wire:model.live="type" :options="$types" required placeholder="Select Type" />
-            <x-select label="Category" wire:model="parent_id" :options="$categories" required
+            <x-choices label="Type" wire:model.live="type" :options="$types" single required
+                placeholder="Select Type" />
+            <x-choices label="Category" wire:model="parent_id" :options="$categories" single required
                 placeholder="Select Category" />
             <x-input label="Account Name" wire:model="name" placeholder="Category Name" required />
             <x-slot:actions>

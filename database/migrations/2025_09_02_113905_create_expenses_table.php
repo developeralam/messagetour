@@ -13,8 +13,9 @@ return new class extends Migration
     {
         Schema::create('expenses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('account_id')->constrained('chart_of_accounts');
+            $table->foreignId('expenses_head_id')->constrained('chart_of_accounts');
             $table->decimal('amount', 15, 2);
+            $table->foreignId('account_id')->constrained('chart_of_accounts');
             $table->text('remarks')->nullable();
             $table->foreignId('action_by')->nullable()->constrained('users');
             $table->softDeletes();

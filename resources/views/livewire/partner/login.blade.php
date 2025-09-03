@@ -59,7 +59,7 @@ new #[Layout('components.layouts.admin-auth')] #[Title('Partner Login')] class e
         </div>
         <!-- Logo -->
         <div class="flex justify-center mb-6 z-10 relative">
-            <img src="{{ asset('logo.png') }}" alt="Flyvaly Logo" class="w-44 drop-shadow-lg rounded-xl bg-white/70 p-2">
+            <img src="{{ asset('logo.png') }}" alt="Logo" class="w-44 drop-shadow-lg rounded-xl bg-white/70 p-2">
         </div>
         <!-- Title -->
         <h2

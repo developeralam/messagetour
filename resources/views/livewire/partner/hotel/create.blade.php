@@ -182,7 +182,7 @@ new #[Layout('components.layouts.partner')] #[Title('Add New Hotel')] class exte
                         <x-input label="Email" class="mb-4" wire:model="email" placeholder="Email" required />
                         <x-input label="Zip Code" class="mb-4" wire:model="zipcode" placeholder="Ex: 1703" />
                         <x-input label="Website" class="mb-4" wire:model="website"
-                            placeholder="Ex: https://flyvaly.com" />
+                            placeholder="Ex: https://example.com" />
 
                     </div>
                 </x-card>

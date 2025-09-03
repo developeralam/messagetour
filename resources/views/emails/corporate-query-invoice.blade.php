@@ -13,6 +13,6 @@
 </body>
 <p>Dear Customer,</p>
 <p>Thank you for your interest. Please find your invoice attached.</p>
-<p>Best regards,<br>Flyvaly.</p>
+<p>Best regards,<br>{{ $globalSettings->application_name ?? 'Flyvaly' }}.</p>
 
 </html>

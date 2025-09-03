@@ -1,18 +1,22 @@
 <?php
 
+use Carbon\Carbon;
 use App\Models\Income;
+use Mary\Traits\Toast;
 use App\Models\Customer;
 use Livewire\Volt\Component;
+use Livewire\WithPagination;
 use Livewire\Attributes\Rule;
 use App\Models\ChartOfAccount;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Layout;
-use Livewire\WithPagination;
-use Mary\Traits\Toast;
 
 new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends Component {
     use Toast, WithPagination;
     public array $headers;
+    public $customer_for_search;
+    public $account_for_search;
+    public $date_for_search;
     public string $search = '';
     public $customers = [];
     public $accounts = [];
@@ -48,6 +52,8 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
                 $query->whereIn('name', ['Cash', 'Bank']);
             })
             ->get();
+
+        $this->date_for_search = Carbon::now()->format('Y-m-d');
     }
 
     public function delete(Income $income): void
@@ -65,13 +71,29 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
 
     public function headers(): array
     {
-        return [['key' => 'id', 'label' => '#'], ['key' => 'customer', 'label' => 'Customer'], ['key' => 'account', 'label' => 'Account'], ['key' => 'amount', 'label' => 'Amount'], ['key' => 'remarks', 'label' => 'Remarks'], ['key' => 'action_by', 'label' => 'Last Action By']];
+        return [['key' => 'id', 'label' => '#'], ['key' => 'customer', 'label' => 'Customer'], ['key' => 'account', 'label' => 'Account'], ['key' => 'amount', 'label' => 'Amount'], ['key' => 'remarks', 'label' => 'Remarks'], ['key' => 'reference', 'label' => 'Reference'], ['key' => 'created_at', 'label' => 'Created At'], ['key' => 'action_by', 'label' => 'Last Action By']];
     }
 
     public function incomes()
     {
         return Income::query()
             ->with(['actionBy', 'account', 'customer'])
+            ->when($this->customer_for_search, function ($query) {
+                $query->where('customer_id', $this->customer_for_search);
+            })
+            ->when($this->account_for_search, function ($query) {
+                $query->where('account_id', $this->account_for_search);
+            })
+            ->when($this->date_for_search, function ($query) {
+                $query->whereDate('created_at', $this->date_for_search);
+            })
+            ->when($this->search, function ($query) {
+                $query->where(function ($q) {
+                    $q->where('amount', 'like', '%' . $this->search . '%')
+                        ->orWhere('remarks', 'like', '%' . $this->search . '%')
+                        ->orWhere('reference', 'like', '%' . $this->search . '%');
+                });
+            })
             ->orderBy(...array_values($this->sortBy))
             ->paginate(10);
     }
@@ -99,8 +121,8 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
         $this->customer_id = $income->customer_id;
         $this->account_id = $income->account_id;
         $this->amount = $income->amount;
-        $this->reference = $income->reference ?? '';
-        $this->remarks = $income->remarks ?? '';
+        $this->reference = $income->reference;
+        $this->remarks = $income->remarks;
         $this->editModal = true;
     }
     public function udpateIncome()
@@ -113,6 +135,7 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
                 'amount' => $this->amount,
                 'reference' => $this->reference,
                 'remarks' => $this->remarks,
+                'action_by' => auth()->user()->id,
             ]);
             $this->success('Income Updated Successfully');
             $this->editModal = false;
@@ -132,6 +155,11 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
 <div>
     <x-header title="Income List" size="text-xl" separator class="bg-white px-2 pt-2">
         <x-slot:actions>
+            <x-input placeholder="Search..." wire:model.live="search" icon="o-bolt" inline />
+            <x-select placeholder="Select Customer" wire:model.live="customer_for_search" :options="$customers"
+                option-label="user.name" option-value="id" />
+            <x-select placeholder="Select Account" wire:model.live="account_for_search" :options="$accounts" />
+            <x-datetime wire:model.live="date_for_search" />
             <x-button label="Add Income" @click="$wire.createModal = true" icon="o-plus" class="btn-primary btn-sm" />
         </x-slot:actions>
     </x-header>
@@ -142,7 +170,7 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
                 {{ $loop->iteration + ($incomes->currentPage() - 1) * $incomes->perPage() }}
             @endscope
             @scope('cell_customer', $income)
-                {{ $income->customer->name ?? 'N/A' }}
+                {{ $income->customer->user->name ?? 'N/A' }}
             @endscope
             @scope('cell_account', $income)
                 {{ $income->account->name ?? 'N/A' }}
@@ -155,6 +183,12 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
             @endscope
             @scope('cell_reference', $income)
                 {{ $income->reference ?? 'N/A' }}
+            @endscope
+            @scope('cell_created_at', $expense)
+                {{ $expense->created_at->format('d M, Y') }}
+            @endscope
+            @scope('cell_amount', $income)
+                BDT {{ number_format($income->amount) }}
             @endscope
             @scope('actions', $income)
                 <div class="flex items-center gap-1">

@@ -182,7 +182,7 @@ new #[Layout('components.layouts.app')] #[Title('Tour Booking')] class extends C
                 'coupon_amount' => $this->coupon_amount,
                 'subtotal' => $this->subtotal,
                 'delivery_charge' => $this->delivery_charge,
-                'tran_id' => uniqid('flyvaly_'),
+                'tran_id' => uniqid(),
                 'total_amount' => $this->total_amount,
                 'status' => OrderStatus::Pending,
                 'payment_gateway_id' => $this->payment_gateway_id,

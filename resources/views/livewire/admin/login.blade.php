@@ -40,9 +40,10 @@ new #[Layout('components.layouts.admin-auth')] #[Title('Admin Login')] class ext
         <!-- Left Panel -->
         <div class="bg-green-500 text-white p-8 flex flex-col justify-center">
             <div class="mb-6">
-                <img src="{{ asset('logo.png') }}" alt="FlyValy Logo">
+                <img src="{{ asset('logo.png') }}" alt="Logo">
             </div>
-            <h2 class="text-2xl md:text-3xl font-bold mb-1">Welcome to FlyValy</h2>
+            <h2 class="text-2xl md:text-3xl font-bold mb-1">Welcome to
+                {{ $globalSettings->application_name ?? 'FlyValy' }}</h2>
             <p class="text-sm md:text-base leading-relaxed">
                 Access powerful tools to manage your application operations.
             </p>
@@ -76,7 +77,7 @@ new #[Layout('components.layouts.admin-auth')] #[Title('Admin Login')] class ext
 
             <div class="mt-6 text-center text-xs text-gray-400">
                 &copy; {{ date('Y') }} <a href="/"
-                    class="text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-green-400 italic">Flyvaly</a>
+                    class="text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-green-400 italic">{{ $globalSettings->application_name ?? 'Flyvaly' }}</a>
                 Traveling. All rights reserved.
             </div>
         </div>

@@ -286,7 +286,7 @@ new #[Layout('components.layouts.app')] #[Title('Gear Booking')] class extends C
                 'shipping_method' => $this->shipping_method,
                 'shipping_charge' => $this->shipping_charge,
                 'total_amount' => $this->total_amount,
-                'tran_id' => uniqid('flyvaly_'),
+                'tran_id' => uniqid(),
                 'status' => OrderStatus::Pending,
                 'payment_gateway_id' => $this->payment_gateway_id,
                 'payment_status' => PaymentStatus::Unpaid,

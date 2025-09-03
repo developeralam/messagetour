@@ -26,7 +26,7 @@ class UserSeeder extends Seeder
         ]);
         $user = User::create([
             'name' => 'Admin',
-            'email' => 'admin@flyvaly.com',
+            'email' => 'admin@massagetourtravels.com',
             'password' => Hash::make('12345678'),
             'type' => UserType::Admin,
             'status' => UserStatus::Active
@@ -44,25 +44,25 @@ class UserSeeder extends Seeder
             'user_id' => $customer->id
         ]);
 
-        $agent = User::create([
-            'name' => 'Md Emon',
-            'email' => 'usskyjraks@gmail.com',
-            'password' => Hash::make('12345678'),
-            'status' => UserStatus::Active,
-            'type' => UserType::Agent,
-        ]);
+        // $agent = User::create([
+        //     'name' => 'Md Emon',
+        //     'email' => 'usskyjraks@gmail.com',
+        //     'password' => Hash::make('12345678'),
+        //     'status' => UserStatus::Active,
+        //     'type' => UserType::Agent,
+        // ]);
 
-        Agent::create([
-            'user_id' => $agent->id,
-            'agent_type' => AgentType::General,
-            'business_name' => 'Autopilot',
-            'business_email' => 'autopilot@flyvaly.com',
-            'business_address' => 'BOF, Gazipur, Dhaka, Bangladesh',
-            'propiter_nid' => '3264843744',
-            'propiter_etin_no' => '001',
-            'zipcode' => '1703',
-            'validity' => Carbon::now()->addYear(),
-            'status' => AgentStatus::Approve
-        ]);
+        // Agent::create([
+        //     'user_id' => $agent->id,
+        //     'agent_type' => AgentType::General,
+        //     'business_name' => 'Autopilot',
+        //     'business_email' => 'autopilot@flyvaly.com',
+        //     'business_address' => 'BOF, Gazipur, Dhaka, Bangladesh',
+        //     'propiter_nid' => '3264843744',
+        //     'propiter_etin_no' => '001',
+        //     'zipcode' => '1703',
+        //     'validity' => Carbon::now()->addYear(),
+        //     'status' => AgentStatus::Approve
+        // ]);
     }
 }
