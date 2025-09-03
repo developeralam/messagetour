@@ -1,14 +1,15 @@
 <?php
 
+use Mary\Traits\Toast;
 use App\Models\Expense;
 use App\Models\Customer;
 use Livewire\Volt\Component;
+use Livewire\WithPagination;
 use Livewire\Attributes\Rule;
 use App\Models\ChartOfAccount;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Layout;
-use Livewire\WithPagination;
-use Mary\Traits\Toast;
+use App\Services\TransactionService;
 
 new #[Layout('components.layouts.admin')] #[Title('Expense List')] class extends Component {
     use Toast, WithPagination;
@@ -97,11 +98,20 @@ new #[Layout('components.layouts.admin')] #[Title('Expense List')] class extends
     {
         $this->validate();
         try {
-            Expense::create([
+            $expense = Expense::create([
                 'expenses_head_id' => $this->expenses_head_id,
                 'account_id' => $this->account_id,
                 'amount' => $this->amount,
                 'remarks' => $this->remarks,
+            ]);
+            TransactionService::recordTransaction([
+                'source_type' => Expense::class,
+                'source_id' => $expense->id,
+                'date' => now(),
+                'amount' => $this->amount,
+                'debit_account_id' => $this->expenses_head_id,
+                'credit_account_id' => $this->account_id,
+                'description' => 'Expense Transaction Information Record',
             ]);
             $this->createModal = false;
             $this->success('Expense Added Successfully');

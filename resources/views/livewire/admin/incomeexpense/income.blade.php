@@ -10,6 +10,7 @@ use Livewire\Attributes\Rule;
 use App\Models\ChartOfAccount;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Layout;
+use App\Services\TransactionService;
 
 new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends Component {
     use Toast, WithPagination;
@@ -102,11 +103,20 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
     {
         $this->validate();
         try {
-            Income::create([
+            $income = Income::create([
                 'customer_id' => $this->customer_id,
                 'account_id' => $this->account_id,
                 'amount' => $this->amount,
                 'remarks' => $this->remarks,
+            ]);
+            TransactionService::recordTransaction([
+                'source_type' => Income::class,
+                'source_id' => $income->id,
+                'date' => now(),
+                'amount' => $this->amount,
+                'debit_account_id' => $this->account_id,
+                'credit_account_id' => ChartOfAccount::where('name', 'Revenue Income')->first()->id,
+                'description' => 'Income Transaction Information Record',
             ]);
             $this->createModal = false;
             $this->success('Income Added Successfully');

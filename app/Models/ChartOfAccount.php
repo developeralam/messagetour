@@ -41,8 +41,9 @@ class ChartOfAccount extends Model
             $baseCode = [
                 'asset' => 100,
                 'liability' => 201,
-                'expense' => 500,
+                'equity' => 300,
                 'revenue' => 400,
+                'expense' => 500,
             ];
 
             $type = $account->type;

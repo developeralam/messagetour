@@ -33,7 +33,7 @@ class ChartOfAccountSeeder extends Seeder
             // ['code' => '208', 'name' => 'Accounts Payable (Customer-Part Exchange)', 'type' => 'liability'],
 
             // REVENUE
-            // ['code' => '301', 'name' => 'Discount Commission Income', 'type' => 'revenue'],
+            ['code' => '400', 'name' => 'Revenue Income', 'type' => 'revenue'],
             // ['code' => '302', 'name' => 'Vehicle Sales Account', 'type' => 'revenue'],
             // ['code' => '303', 'name' => 'Spare Parts Sales Account', 'type' => 'revenue'],
             // ['code' => '304', 'name' => 'Vehicle Sales Return Account', 'type' => 'revenue'],

@@ -49,10 +49,10 @@ new #[Layout('components.layouts.admin')] #[Title('Cash Payments Report')] class
     <div>
         <x-header title="Reports" size="text-xl" separator class="bg-white px-2 pt-2" />
         <x-button label="Trail Balance" link="/admin/accounts/reports/trail-balance"
-            class="btn-sm {{ url()->current() == url('/admin/accounts/reports/trail-balance') ? 'bg-green-500' : 'btn-primary' }}" />
+            class="btn-sm mx-2 {{ url()->current() == url('/admin/accounts/reports/trail-balance') ? 'bg-green-500' : 'btn-primary' }}" />
 
         <x-button label="Balance Sheet" link="/admin/accounts/reports/balance-sheet"
-            class="btn-sm {{ url()->current() == url('/admin/accounts/reports/balance-sheet') ? 'bg-green-500' : 'btn-primary' }}" />
+            class="btn-sm mx-2 {{ url()->current() == url('/admin/accounts/reports/balance-sheet') ? 'bg-green-500' : 'btn-primary' }}" />
     </div>
     <x-card title="Balance Sheet Report" separator class="mt-2">
         <div class="grid grid-cols-2 gap-2">
