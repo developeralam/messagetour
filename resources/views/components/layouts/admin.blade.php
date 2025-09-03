@@ -58,20 +58,6 @@
                 <x-menu-item title="Dashboard" icon="o-home" link="/admin/dashboard" />
                 <x-menu-separator />
 
-                @can('orders')
-                    <x-menu-item title="Orders" icon="fab.first-order-alt" link="/admin/order/list" />
-                    <x-menu-separator />
-                @endcan
-
-                @can('bookings')
-                    <x-menu-item title="Bookings" icon="fas.b" link="/admin/booking/list" />
-                    <x-menu-separator />
-                    <x-menu-item title="Group Flight Bookings" icon="fas.plane-departure"
-                        link="/admin/group-flight/booking/list" />
-                    <x-menu-separator />
-                    <x-menu-item title="E-visa Bookings" icon="fab.cc-visa" link="/admin/e-visa/booking/list" />
-                    <x-menu-separator />
-                @endcan
                 @can('hotel')
                     {{-- Hotel --}}
                     <x-menu-sub title="Hotel" icon="fas.hotel" :open="request()->is('admin/hotel/*', 'admin/agent/hotel/list')">
@@ -138,35 +124,68 @@
                     <x-menu-separator />
                 @endcan
 
-                @can('offer')
-                    {{-- Offer --}}
-                    <x-menu-sub title="Offer" icon="fab.buffer" :open="request()->is('admin/offer/*')">
-                        <x-menu-item title="Offer List" icon="fas.list" link="/admin/offer/list" />
-                        <x-menu-item title="Add Offer" icon="fas.plus" no-wire-navigate link="/admin/offer/create" />
+                @canany(['orders', 'bookings', 'corporate-query'])
+                    <x-menu-sub title="Booking Management" icon="fas.b" :open="request()->is(
+                        'admin/order/list',
+                        'admin/booking/list',
+                        'admin/group-flight/booking/list',
+                        'admin/e-visa/booking/list',
+                        'admin/corporate-queries',
+                    )">
+                        @can('orders')
+                            <x-menu-item title="Orders" icon="fas.list" link="/admin/order/list" />
+                        @endcan
+
+                        @can('bookings')
+                            <x-menu-item title="Group Flight Bookings" icon="fas.list"
+                                link="/admin/group-flight/booking/list" />
+                            <x-menu-item title="E-visa Bookings" icon="fas.list" link="/admin/e-visa/booking/list" />
+                            <x-menu-item title="Other Bookings List" icon="fas.list" link="/admin/booking/list" />
+                        @endcan
+
+                        @can('corporate-query')
+                            <x-menu-item title="Corporate Query" icon="fas.list" link="/admin/corporate-queries" />
+                        @endcan
                     </x-menu-sub>
                     <x-menu-separator />
+                @endcanany
+
+
+                @can('customer')
+                    {{-- Customer --}}
+                    <x-menu-item title="Customers" icon="fas.users" link="/admin/customers" />
+                    <x-menu-separator />
                 @endcan
 
-                @can('faq')
-                    {{-- FAQ --}}
-                    <x-menu-sub title="FAQ" icon="fas.question" :open="request()->is('admin/faq/*')">
-                        <x-menu-item title="Faq List" icon="fas.list" link="/admin/faq/list" />
-                        <x-menu-item title="Add Faq" icon="fas.plus" no-wire-navigate link="/admin/faq/create" />
+                @canany(['agent', 'commission', 'agent-report'])
+                    <x-menu-sub title="Agent Management" icon="fas.a" :open="request()->is('admin/agent/*', 'admin/commission/manage', 'admin/agent/sale/report')">
+                        @can('agent')
+                            <x-menu-item title="Agents" icon="fas.handshake" link="/admin/agent/list" />
+                        @endcan
+
+                        @can('commission')
+                            <x-menu-item title="Agent Commissions" icon="fas.percent" link="/admin/commission/manage" />
+                        @endcan
+
+                        @can('agent-report')
+                            <x-menu-item title="Agent Sales Report" icon="fas.file" link="/admin/agent/sale/report" />
+                        @endcan
                     </x-menu-sub>
                     <x-menu-separator />
-                @endcan
+                @endcanany
 
-                @can('corporate-query')
-                    {{-- Corporate Query --}}
-                    <x-menu-item title="Corporate Query" icon="fas.list" link="/admin/corporate-queries" />
+
+                {{-- @can('transaction-history')
+                    Transactions
+                    <x-menu-item title="Transactions" icon="fas.money-bill-transfer" link="/admin/transaction/history" />
                     <x-menu-separator />
-                @endcan
+                @endcan --}}
 
-                @can('blog')
-                    {{-- Payment Gateway --}}
-                    <x-menu-sub title="Blogs" icon="fas.blog" :open="request()->is('admin/blog/*')">
-                        <x-menu-item title="Blog List" icon="fas.list" link="/admin/blog/list" />
-                        <x-menu-item title="Add New Blog" icon="fas.plus" no-wire-navigate link="/admin/blog/create" />
+                @can('bank-payment')
+                    {{-- Bank & Payment --}}
+                    <x-menu-sub title="Bank & Payment" icon="fas.building-columns" :open="request()->is('admin/banks', 'admin/payments')">
+                        <x-menu-item title="Bank List" icon="fas.list" link="/admin/banks" />
+                        <x-menu-item title="Payment List" icon="fas.list" link="/admin/payments" />
                     </x-menu-sub>
                     <x-menu-separator />
                 @endcan
@@ -177,71 +196,67 @@
                     <x-menu-separator />
                 @endcan
 
-                @can('commission')
-                    {{-- Commision --}}
-                    <x-menu-item title="Commission" icon="fas.percent" link="/admin/commission/manage" />
-                    <x-menu-separator />
-                @endcan
-
-                @can('coupon')
-                    {{-- Coupon code --}}
-                    <x-menu-item title="Coupon Code" icon="fas.gift" link="/admin/coupon-codes" />
-                    <x-menu-separator />
-                @endcan
-
-                @can('agent')
-                    {{-- Agent --}}
-                    <x-menu-sub title="Agent" icon="fas.handshake" :open="request()->is('admin/agent/*')">
-                        <x-menu-item title="Agent List" icon="fas.list" link="/admin/agent/list" />
-                        <x-menu-item title="Add Agent" icon="fas.plus" link="/admin/agent/create" />
+                @can('location')
+                    {{-- Location --}}
+                    <x-menu-sub title="Locations" icon="o-cog-6-tooth" :open="request()->is('admin/settings/location/*')">
+                        <x-menu-item title="Country" icon="fas.flag-usa" link="/admin/settings/location/country" />
+                        <x-menu-item title="Division" icon="fas.d" link="/admin/settings/location/division" />
+                        <x-menu-item title="District" icon="fas.d" link="/admin/settings/location/district" />
                     </x-menu-sub>
                     <x-menu-separator />
                 @endcan
 
-                @can('agent-report')
-                    {{-- Agent Report --}}
-                    <x-menu-item title="Agent Sale Report" icon="fas.file" link="/admin/agent/sale/report" />
-                    <x-menu-separator />
-                @endcan
+                @canany(['offer', 'faq', 'coupon', 'blog', 'subscriber', 'contactus', 'aboutus', 'globalsettings',
+                    'reviews'])
+                    <x-menu-sub title="Website Management" icon="fas.w" :open="request()->is(
+                        'admin/blog/*',
+                        'admin/subscribers',
+                        'admin/contact-us',
+                        'admin/about-us',
+                        'admin/global-settings',
+                        'admin/reviews',
+                        'admin/offer/*',
+                        'admin/faq/*',
+                        'admin/coupon-codes',
+                    )">
+                        @can('offer')
+                            <x-menu-item title="Offer List" icon="fas.list" link="/admin/offer/list" />
+                        @endcan
 
-                @can('customer')
-                    {{-- Customer --}}
-                    <x-menu-item title="Customer" icon="fas.users" link="/admin/customers" />
-                    <x-menu-separator />
-                @endcan
+                        @can('faq')
+                            <x-menu-item title="Faq List" icon="fas.list" link="/admin/faq/list" />
+                        @endcan
 
-                @can('transaction-history')
-                    {{-- Transactions --}}
-                    <x-menu-item title="Transactions" icon="fas.money-bill-transfer" link="/admin/transaction/history" />
-                    <x-menu-separator />
-                @endcan
+                        @can('coupon')
+                            <x-menu-item title="Coupon Code" icon="fas.gift" link="/admin/coupon-codes" />
+                        @endcan
 
-                @can('subscriber')
-                    {{-- Subscriber --}}
-                    <x-menu-item title="Subscriber" icon="fas.users" link="/admin/subscribers" />
-                    <x-menu-separator />
-                @endcan
+                        @can('blog')
+                            <x-menu-item title="Blog List" icon="fas.list" link="/admin/blog/list" />
+                        @endcan
 
-                @can('contactus')
-                    {{-- Contact Us --}}
-                    <x-menu-item title="Contact Us" icon="fas.address-book" link="/admin/contact-us" />
-                    <x-menu-separator />
-                @endcan
+                        @can('subscriber')
+                            <x-menu-item title="Subscriber" icon="fas.users" link="/admin/subscribers" />
+                        @endcan
 
-                @can('reviews')
-                    {{-- Reviews --}}
-                    <x-menu-item title="Review" icon="fas.star" link="/admin/reviews" />
-                    <x-menu-separator />
-                @endcan
+                        @can('contactus')
+                            <x-menu-item title="Contact Us" icon="fas.address-book" link="/admin/contact-us" />
+                        @endcan
 
-                @can('bank-payment')
-                    {{-- Bank & Payment --}}
-                    <x-menu-sub title="Bank & Payment" icon="fas.building-columns" :open="request()->is('admin/banks', 'admin/payments')">
-                        <x-menu-item title="Bank List" icon="fas.list" link="/admin/banks" />
-                        <x-menu-item title="Payment List" icon="fas.list" link="/admin/payments" />
+                        @can('aboutus')
+                            <x-menu-item title="About Us" icon="fas.list" no-wire-navigate link="/admin/about-us" />
+                        @endcan
+
+                        @can('globalsettings')
+                            <x-menu-item title="Global Settings" icon="fas.globe" link="/admin/global-settings" />
+                        @endcan
+
+                        @can('reviews')
+                            <x-menu-item title="Review" icon="fas.star" link="/admin/reviews" />
+                        @endcan
                     </x-menu-sub>
                     <x-menu-separator />
-                @endcan
+                @endcanany
 
                 {{-- Other Transactions --}}
                 @php
@@ -310,27 +325,6 @@
                         <x-menu-item no-wire-navigate title="User Management" icon="fas.list"
                             link="/admin/system-user/list" />
                     </x-menu-sub>
-                    <x-menu-separator />
-                @endcan
-
-                @can('location')
-                    {{-- Location --}}
-                    <x-menu-sub title="Locations" icon="o-cog-6-tooth" :open="request()->is('admin/settings/location/*')">
-                        <x-menu-item title="Country" icon="fas.flag-usa" link="/admin/settings/location/country" />
-                        <x-menu-item title="Division" icon="fas.d" link="/admin/settings/location/division" />
-                        <x-menu-item title="District" icon="fas.d" link="/admin/settings/location/district" />
-                    </x-menu-sub>
-                @endcan
-
-                @can('globalsettings')
-                    {{-- Global Settings --}}
-                    <x-menu-item title="Global Settings" icon="fas.globe" link="/admin/global-settings" />
-                    <x-menu-separator />
-                @endcan
-
-                @can('aboutus')
-                    {{-- About Us --}}
-                    <x-menu-item title="About Us" icon="fas.list" no-wire-navigate link="/admin/about-us" />
                     <x-menu-separator />
                 @endcan
 

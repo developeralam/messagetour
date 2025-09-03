@@ -166,12 +166,12 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Account Category')] 
             @scope('actions', $account)
                 <div class="flex items-center gap-1">
                     <x-button icon="fas.print" wire:click="print({{ $account['id'] }})"
-                        class="btn-primary btn-sm text-white" />
-                    @if (!in_array($account['code'], ['101', '102', '204']))
+                        class="btn-primary btn-action text-white" />
+                    @if (!in_array($account['code'], ['100', '101']))
                         <x-button icon="o-trash" wire:click="delete({{ $account['id'] }})" wire:confirm="Are you sure?"
-                            class="btn-primary btn-sm text-white" />
+                            class="btn-error btn-action text-white" />
                         <x-button icon="s-pencil-square" wire:click="edit({{ $account['id'] }})"
-                            class="btn-primary btn-sm text-white" />
+                            class="btn-neutral btn-action text-white" />
                     @endif
                 </div>
             @endscope
@@ -179,8 +179,8 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Account Category')] 
     </x-card>
     <x-modal wire:model="createModal" title="Add New Category" separator>
         <x-form wire:submit="storeCategory">
+            <x-choices label="Type" wire:model="type" :options="$types" single required placeholder="Select Type" />
             <x-input label="Category Name" wire:model="name" placeholder="Category Name" required />
-            <x-select label="Type" wire:model="type" :options="$types" required placeholder="Select Type" />
             <x-slot:actions>
                 <x-button label="Cancel" class="btn-sm" @click="$wire.createModal = false" />
                 <x-button type="submit" label="Add Category" class="btn-sm btn-primary" spinner="storeCategory" />
@@ -189,8 +189,8 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Account Category')] 
     </x-modal>
     <x-modal wire:model="editModal" title="Update Category {{ $account->name ?? '' }}" separator>
         <x-form wire:submit="updateCategory">
+            <x-choices label="Type" wire:model="type" :options="$types" single required placeholder="Select Type" />
             <x-input label="Category Name" wire:model="name" placeholder="Category Name" required />
-            <x-select label="Type" wire:model="type" :options="$types" required placeholder="Select Type" />
             <x-slot:actions>
                 <x-button label="Cancel" class="btn-sm" @click="$wire.editModal = false" />
                 <x-button type="submit" label="Save" class="btn-sm btn-primary" spinner="updateCategory" />
