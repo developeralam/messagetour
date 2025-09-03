@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <link rel="icon" type="image/x-icon" href="{{ $globalSettings->logo_link ?? '/logo.png' }}">
+    <link rel="icon" type="image/x-icon" href="{{ $globalSettings->favicon_link ?? '/logo.png' }}">
     <title>{{ isset($title) ? $title . ' - ' . config('app.name') : config('app.name') }}</title>
 
     {{-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"> --}}

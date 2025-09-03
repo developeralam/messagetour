@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="icon" type="image/x-icon" href="{{ $globalSettings->logo_link ?? '/logo.png' }}">
+    <link rel="icon" type="image/x-icon" href="{{ $globalSettings->favicon_link ?? '/logo.png' }}">
     <title>{{ isset($title) ? $title . ' - ' . config('app.name') : config('app.name') }}</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.18/summernote-lite.min.css" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
