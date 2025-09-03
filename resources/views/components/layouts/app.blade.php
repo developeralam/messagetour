@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <link rel="icon" type="image/x-icon" href="{{ $globalSettings->logo_link ?? '/logo.png' }}">
+    <link rel="icon" type="image/x-icon" href="{{ $globalSettings->favicon_link ?? '/logo.png' }}">
     <title>{{ isset($title) ? $title . ' - ' . config('app.name') : config('app.name') }}</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="{{ asset('owl.carousel.min.css') }}" />
@@ -134,7 +134,7 @@
             <!-- Logo -->
             <a href="/" class="flex items-center">
                 <img src="{{ $globalSettings->logo_link ?? '/logo.png' }}"
-                    class="h-9 md:h-10 lg:h-12 rounded-lg shadow-none" alt="Massagetourtravels Logo" />
+                    class="h-9 md:h-10 lg:h-12 rounded-lg shadow-none" alt=" Logo" />
             </a>
 
             <!-- Desktop Nav -->
@@ -270,7 +270,7 @@
 
             <a href="/" class="mb-6 flex items-center gap-2" @click="isOpen = false">
                 <img src="{{ $globalSettings->logo_link ?? '/logo.png' }}" class="h-12 rounded-lg shadow-none"
-                    alt="Massagetourtravels Logo" />
+                    alt="Logo" />
             </a>
             <ul class="flex flex-col items-center w-full gap-1">
                 <li>
@@ -353,7 +353,8 @@
                 <div class="text-center mb-6 md:mb-8 lg:mb-12">
                     <h1
                         class="font-bold text-white leading-normal text-2xl md:text-4xl lg:text-5xl shining-effect-cover">
-                        Let The Journey Begin With <span class="italic">FLYVALY</span>
+                        Let The Journey Begin With <span
+                            class="italic">{{ $globalSettings->application_name ?? 'FLYVALY' }}</span>
                     </h1>
                     <p class="text-white text-xs md:text-lg max-w-xl mx-auto font-semibold">Find Flights, Hotels, Tour,
                         Travel
@@ -425,7 +426,7 @@
                                     <h5 class="tracking-[1px] text-gray-100 font-bold">Contact Us</h5>
                                     <h5
                                         class="tracking-[1px] text-gray-100 mt-4 text-sm lg:text-base whitespace-nowrap">
-                                        Flyvaly Tour &amp; Travels
+                                        {{ $globalSettings->application_name ?? 'Flyvaly Tour &amp; Travels' }}
                                     </h5>
 
                                     <div class="flex mt-2">
@@ -580,7 +581,7 @@
                         <div class="flex justify-center items-center mt-2">
                             <p class="text-gray-300 text-xs sm:text-base">Copyright &copy; {{ date('Y') }}. <a
                                     href="/"
-                                    class="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-green-400 italic">FLYVALY.</a>
+                                    class="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-green-400 italic">{{ $globalSettings->application_name ?? 'FLYVALY' }}.</a>
                                 All Rights Reserved.
                             </p>
                         </div>

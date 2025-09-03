@@ -113,7 +113,7 @@
             <!-- Logo -->
             <a href="/" class="flex items-center">
                 <img src="{{ $globalSettings->logo_link ?? '/logo.png' }}"
-                    class="h-9 md:h-10 lg:h-12 rounded-lg shadow-none" alt="Massagetourtravels Logo" />
+                    class="h-9 md:h-10 lg:h-12 rounded-lg shadow-none" alt=" Logo" />
             </a>
 
             <!-- Desktop Nav -->
@@ -249,7 +249,7 @@
 
             <a href="/" class="mb-6 flex items-center gap-2" @click="isOpen = false">
                 <img src="{{ $globalSettings->logo_link ?? '/logo.png' }}" class="h-12 rounded-lg shadow-none"
-                    alt="Massagetourtravels Logo" />
+                    alt=" Logo" />
             </a>
             <ul class="flex flex-col items-center w-full gap-1">
                 <li>
@@ -357,7 +357,7 @@
                                     <h5 class="tracking-[1px] text-gray-100 font-bold">Contact Us</h5>
                                     <h5
                                         class="tracking-[1px] text-gray-100 mt-4 text-sm lg:text-base whitespace-nowrap">
-                                        Massage Tour &amp; Travels
+                                        {{ $globalSettings->application_name ?? 'Flyvaly Tour &amp; Travels' }}
                                     </h5>
 
                                     <div class="flex mt-2">

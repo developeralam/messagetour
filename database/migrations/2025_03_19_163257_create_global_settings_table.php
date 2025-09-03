@@ -38,6 +38,7 @@ return new class extends Migration
             $table->string('mail_from_name')->nullable();
             $table->string('sms_api_key')->nullable();
             $table->string('sms_sender_id')->nullable();
+            $table->string('application_name')->nullable();
             $table->timestamps();
         });
     }

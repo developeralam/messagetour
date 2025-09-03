@@ -9,8 +9,7 @@ use Livewire\Volt\Component;
 use Livewire\WithFileUploads;
 use Mary\Traits\Toast;
 
-new #[Layout('components.layouts.admin')] #[Title('Global Settings')] class extends Component
-{
+new #[Layout('components.layouts.admin')] #[Title('Global Settings')] class extends Component {
     use Toast, WithFileUploads;
 
     public $logo_link;
@@ -22,6 +21,9 @@ new #[Layout('components.layouts.admin')] #[Title('Global Settings')] class exte
 
     #[Rule('nullable')]
     public $favicon;
+
+    #[Rule('nullable')]
+    public $application_name;
 
     #[Rule('nullable')]
     public $contact_email;
@@ -96,11 +98,12 @@ new #[Layout('components.layouts.admin')] #[Title('Global Settings')] class exte
             $favicon_url = $this->favicon ? $this->favicon->store('global', 'public') : null;
 
             // Get the existing row or create a new one
-            $globalSetting = GlobalSettings::first() ?? new GlobalSettings;
+            $globalSetting = GlobalSettings::first() ?? new GlobalSettings();
 
             // Update the attributes
             $globalSetting->logo = $logo_url ?? $globalSetting->logo;
             $globalSetting->favicon = $favicon_url ?? $globalSetting->favicon;
+            $globalSetting->application_name = $this->application_name;
             $globalSetting->contact_email = $this->contact_email;
             $globalSetting->support_email = $this->support_email;
             $globalSetting->address = $this->address;
@@ -131,11 +134,13 @@ new #[Layout('components.layouts.admin')] #[Title('Global Settings')] class exte
     <livewire:global-settings-component />
     <x-form wire:submit="storeGlobalData">
         <x-card>
-            <x-devider title="Global Informations"/>
+            <x-devider title="Global Informations" />
             <div class="grid grid-cols-4 gap-4">
-                <x-file wire:model="logo" label="Website Logo" accept="image/png, image/jpeg,image/jpg"/>
-                <x-file wire:model="favicon" label="Favicon" accept="image/png, image/jpeg,image/jpg"/>
-                <x-input type="email" wire:model="contact_email" label="Information Email" placeholder="Information Email" />
+                <x-file wire:model="logo" label="Website Logo" accept="image/png, image/jpeg,image/jpg" />
+                <x-file wire:model="favicon" label="Favicon" accept="image/png, image/jpeg,image/jpg" />
+                <x-input wire:model="application_name" label="Application Name" placeholder="Application Name" />
+                <x-input type="email" wire:model="contact_email" label="Information Email"
+                    placeholder="Information Email" />
                 <x-input type="email" wire:model="support_email" label="Support Email" placeholder="Support Email" />
                 <x-input wire:model="phone" label="Phone" placeholder="Phone" />
                 <x-input wire:model="address" label="Address" placeholder="Address" />
@@ -146,12 +151,14 @@ new #[Layout('components.layouts.admin')] #[Title('Global Settings')] class exte
                 <x-input wire:model="sms_api_key" label="Sms Api Key" placeholder="Sms Api Key" />
                 <x-input wire:model="sms_sender_id" label="Sms Sender Id" placeholder="Sms Sender Id" />
                 <x-input wire:model="reservation" label="Reservation" placeholder="Reservation" />
-                <x-input type="email" wire:model="reservation_email" label="Reservation Email" placeholder="Reservation Email" />
+                <x-input type="email" wire:model="reservation_email" label="Reservation Email"
+                    placeholder="Reservation Email" />
                 <x-input wire:model="account" label="Account" placeholder="Account" />
                 <x-input type="email" wire:model="account_email" label="Account Email" placeholder="Account Email" />
             </div>
             <x-slot:actions>
-                <x-button type="submit" label="Store Global Data" spinner="storeGlobalData" class="btn-primary btn-sm" />
+                <x-button type="submit" label="Store Global Data" spinner="storeGlobalData"
+                    class="btn-primary btn-sm" />
             </x-slot>
         </x-card>
     </x-form>

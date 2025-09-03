@@ -168,7 +168,7 @@
             <span><strong>Address</strong></span>
             <span class="float-right">
                 Make all cheques payable to
-                <strong>FLYVALY.</strong>
+                <strong>{{ $globalSettings->application_name ?? 'FLYVALY' }}.</strong>
             </span>
         </div>
         <table class="w-100">

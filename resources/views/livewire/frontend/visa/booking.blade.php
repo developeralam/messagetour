@@ -231,7 +231,7 @@ new #[Layout('components.layouts.app')] #[Title('Visa Booking')] class extends C
                 'coupon_amount' => $this->coupon_amount,
                 'subtotal' => $this->subtotal,
                 'delivery_charge' => $this->delivery_charge,
-                'tran_id' => uniqid('flyvaly_'),
+                'tran_id' => uniqid(),
                 'total_amount' => $this->total_amount,
                 'status' => OrderStatus::Pending,
                 'payment_gateway_id' => $this->payment_gateway_id,
@@ -360,65 +360,65 @@ new #[Layout('components.layouts.app')] #[Title('Visa Booking')] class extends C
     <section class="max-w-6xl mx-auto pt-10">
         <div class="bg-white p-6 sm:p-8 rounded-sm shadow-md">
             @if ($visa->type !== \App\Enum\VisaType::Evisa)
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <!-- Selected Date of Document Collection -->
-                <div class="bg-gray-100 p-4 rounded border text-gray-700">
-                    <p class="text-sm font-medium">Selected Date of Document Collection</p>
-                    <p class="mt-1 text-base">
-                        {{ \Carbon\Carbon::parse($document_collection_date)->format('d M, Y') }}
-                    </p>
-                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Selected Date of Document Collection -->
+                    <div class="bg-gray-100 p-4 rounded border text-gray-700">
+                        <p class="text-sm font-medium">Selected Date of Document Collection</p>
+                        <p class="mt-1 text-base">
+                            {{ \Carbon\Carbon::parse($document_collection_date)->format('d M, Y') }}
+                        </p>
+                    </div>
 
-                <!-- Visa Processing Fee -->
-                <div class="bg-gray-100 p-4 rounded border text-gray-700">
-                    <p class="text-sm font-medium">Visa Processing Fee</p>
-                    <p class="mt-1 text-base">{{ $selected_fee }} BDT / <small>Per person</small></p>
-                </div>
-
-                <!-- Number of Persons -->
-                <div class="bg-gray-100 p-4 rounded border text-gray-700">
-                    <p class="text-sm font-medium">Number of Persons</p>
-                    <p class="mt-1 text-base">{{ $total_travellers }}</p>
-                </div>
-
-                <!-- Convenient Fee -->
-                <div class="bg-gray-100 p-4 rounded border text-gray-700">
-                    <p class="text-sm font-medium">Convenient Fee (For Per Visit)</p>
-                    <p class="mt-1 text-base">{{ $convenient_fee }} BDT</p>
-                </div>
-            </div>
-            @else
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div
-                    class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 md:mb-6 text-sm rounded-md">
-                    <p class="font-bold mb-1">Please read before proceeding:</p>
-                    <ul class="list-disc pl-5 space-y-1">
-                        <li>Please check documents checklist and upload according, less docs may
-                            not
-                            entertained.</li>
-                        <li>Select number of Passenger and pay accordingly.</li>
-                        <li>Orginal Copy with duly Signed.</li>
-                        <li>Only in English and Notary (PDF/JPG).</li>
-                        <li>Please Compressed to reduced Size.</li>
-                        <li><span class="text-red-600 font-semibold">If any Documents are not
-                                clear
-                                you may ask for further.</span></li>
-                    </ul>
-                </div>
-                <div>
                     <!-- Visa Processing Fee -->
-                    <div class="bg-gray-100 p-4 mt-1 rounded border text-gray-700">
+                    <div class="bg-gray-100 p-4 rounded border text-gray-700">
                         <p class="text-sm font-medium">Visa Processing Fee</p>
                         <p class="mt-1 text-base">{{ $selected_fee }} BDT / <small>Per person</small></p>
                     </div>
 
                     <!-- Number of Persons -->
-                    <div class="bg-gray-100 p-4 rounded border text-gray-700 md:mt-12 mt-4">
+                    <div class="bg-gray-100 p-4 rounded border text-gray-700">
                         <p class="text-sm font-medium">Number of Persons</p>
                         <p class="mt-1 text-base">{{ $total_travellers }}</p>
                     </div>
+
+                    <!-- Convenient Fee -->
+                    <div class="bg-gray-100 p-4 rounded border text-gray-700">
+                        <p class="text-sm font-medium">Convenient Fee (For Per Visit)</p>
+                        <p class="mt-1 text-base">{{ $convenient_fee }} BDT</p>
+                    </div>
                 </div>
-            </div>
+            @else
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div
+                        class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 md:mb-6 text-sm rounded-md">
+                        <p class="font-bold mb-1">Please read before proceeding:</p>
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>Please check documents checklist and upload according, less docs may
+                                not
+                                entertained.</li>
+                            <li>Select number of Passenger and pay accordingly.</li>
+                            <li>Orginal Copy with duly Signed.</li>
+                            <li>Only in English and Notary (PDF/JPG).</li>
+                            <li>Please Compressed to reduced Size.</li>
+                            <li><span class="text-red-600 font-semibold">If any Documents are not
+                                    clear
+                                    you may ask for further.</span></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <!-- Visa Processing Fee -->
+                        <div class="bg-gray-100 p-4 mt-1 rounded border text-gray-700">
+                            <p class="text-sm font-medium">Visa Processing Fee</p>
+                            <p class="mt-1 text-base">{{ $selected_fee }} BDT / <small>Per person</small></p>
+                        </div>
+
+                        <!-- Number of Persons -->
+                        <div class="bg-gray-100 p-4 rounded border text-gray-700 md:mt-12 mt-4">
+                            <p class="text-sm font-medium">Number of Persons</p>
+                            <p class="mt-1 text-base">{{ $total_travellers }}</p>
+                        </div>
+                    </div>
+                </div>
             @endif
 
         </div>
@@ -485,14 +485,14 @@ new #[Layout('components.layouts.app')] #[Title('Visa Booking')] class extends C
                             <div class="payment_method">
                                 <h5 class="p-2 bg-light font-bold">Select a payment method</h5>
                                 @foreach ($gateways as $gateway)
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input custom-radio-dot" type="radio"
-                                        id="gateway-{{ $gateway->id }}" value="{{ $gateway->id }}"
-                                        wire:model.live="payment_gateway_id">
-                                    <label class="form-check-label text-sm"
-                                        for="gateway-{{ $gateway->id }}">{{ $gateway->name }}
-                                    </label>
-                                </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input custom-radio-dot" type="radio"
+                                            id="gateway-{{ $gateway->id }}" value="{{ $gateway->id }}"
+                                            wire:model.live="payment_gateway_id">
+                                        <label class="form-check-label text-sm"
+                                            for="gateway-{{ $gateway->id }}">{{ $gateway->name }}
+                                        </label>
+                                    </div>
                                 @endforeach
                             </div>
                             <div class="flex flex-col sm:flex-row gap-x-2 gap-y-2 items-stretch">

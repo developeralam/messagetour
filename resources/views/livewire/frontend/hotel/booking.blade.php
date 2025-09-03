@@ -195,7 +195,7 @@ new #[Layout('components.layouts.app')] #[Title('Hotel Room Booking')] class ext
                 'coupon_amount' => $this->coupon_amount,
                 'subtotal' => $this->subtotal,
                 'delivery_charge' => $this->delivery_charge,
-                'tran_id' => uniqid('flyvaly_'),
+                'tran_id' => uniqid(),
                 'total_amount' => $this->total_amount,
                 'status' => OrderStatus::Pending,
                 'payment_gateway_id' => $this->payment_gateway_id,

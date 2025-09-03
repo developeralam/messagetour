@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="icon" type="image/x-icon" href="{{ $globalSettings->favicon_link ?? '/logo.png' }}">
     <title>{{ isset($title) ? $title . ' - ' . config('app.name') : config('app.name') }}</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
@@ -27,12 +28,12 @@
                 <!-- Hidden when collapsed -->
                 <div {{ $attributes->class(['hidden-when-collapsed']) }}>
                     <div class="flex items-center gap-2">
-                        <img class="w-48 h-10" src="{{ asset('logo.png') }}" alt="Logo">
+                        <img class="w-48 h-10" src="{{ $globalSettings->favicon_link ?? '/logo.png' }}" alt="Logo">
                     </div>
                 </div>
                 <!-- Display when collapsed -->
                 <div class="display-when-collapsed hidden mx-5 mt-4 lg:mb-6 h-[28px]">
-                    <img src="{{ asset('logo.png') }}" alt="Logo">
+                    <img src="{{ $globalSettings->favicon_link ?? '/logo.png' }}" alt="Logo">
                 </div>
             </a>
             <div class="ml-14">

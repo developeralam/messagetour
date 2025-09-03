@@ -40,7 +40,8 @@ class GlobalSettings extends Model
         'mail_from_address',
         'mail_from_name',
         'sms_api_key',
-        'sms_sender_id'
+        'sms_sender_id',
+        'application_name',
     ];
 
     public function getLogoLinkAttribute()

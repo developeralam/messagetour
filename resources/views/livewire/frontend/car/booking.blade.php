@@ -252,7 +252,7 @@ new #[Layout('components.layouts.app')] #[Title('Car Booking')] class extends Co
                 'coupon_amount' => $this->coupon_amount, // Apply coupon discount
                 'subtotal' => $this->subtotal,
                 'delivery_charge' => $this->delivery_charge,
-                'tran_id' => uniqid('flyvaly_'), // Generate a unique transaction ID
+                'tran_id' => uniqid(), // Generate a unique transaction ID
                 'total_amount' => $this->total_amount, // Total amount to be paid
                 'status' => OrderStatus::Pending, // Initial order status
                 'payment_gateway_id' => $this->payment_gateway_id, // Payment gateway used
@@ -401,14 +401,14 @@ new #[Layout('components.layouts.app')] #[Title('Car Booking')] class extends Co
 
 <div class="bg-gray-100 px-5 xl:px-0">
     @section('booking')
-        <div class="flex items-center space-x-1 justify-center text-white mt-10 font-extrabold text-xl">
-            <a href="/" class="hover:text-green-700 hover:underline">Home</a>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-800" fill="none" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M9 18l6-6-6-6"></path>
-            </svg>
-            <span>Car Booking</span>
-        </div>
+    <div class="flex items-center space-x-1 justify-center text-white mt-10 font-extrabold text-xl">
+        <a href="/" class="hover:text-green-700 hover:underline">Home</a>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-800" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M9 18l6-6-6-6"></path>
+        </svg>
+        <span>Car Booking</span>
+    </div>
     @endsection
 
     <section class="pt-6">
@@ -447,27 +447,27 @@ new #[Layout('components.layouts.app')] #[Title('Car Booking')] class extends Co
                     <!-- Rent Info -->
                     <div class="mb-3 text-sm md:text-base text-gray-800">
                         @if ($car->only_body == 1)
-                            <p class="font-medium">
-                                <span class="text-[#f73] font-bold">Hour Rent:</span>
-                                BDT {{ $car->hour_rent }}/ <small>Per Hour</small>
-                            </p>
+                        <p class="font-medium">
+                            <span class="text-[#f73] font-bold">Hour Rent:</span>
+                            BDT {{ $car->hour_rent }}/ <small>Per Hour</small>
+                        </p>
                         @elseif ($car->only_body == 0)
-                            <p class="font-medium">
-                                <span class="text-[#f73] font-bold">Rent:</span>
-                                BDT {{ $car->rent }}/ <small>Per Day</small>
-                            </p>
+                        <p class="font-medium">
+                            <span class="text-[#f73] font-bold">Rent:</span>
+                            BDT {{ $car->rent }}/ <small>Per Day</small>
+                        </p>
                         @endif
 
                         @if ($car->extra_time_cost_by_hour && $car->only_body == 1)
-                            <p class="text-xs text-gray-600 mt-1">
-                                Extra Time Cost Hour: {{ $car->extra_time_cost_by_hour }}
-                            </p>
+                        <p class="text-xs text-gray-600 mt-1">
+                            Extra Time Cost Hour: {{ $car->extra_time_cost_by_hour }}
+                        </p>
                         @endif
 
                         @if ($car->extra_time_cost && $car->only_body == 0)
-                            <p class="text-xs text-gray-600">
-                                Extra Time Cost: BDT {{ $car->extra_time_cost }}
-                            </p>
+                        <p class="text-xs text-gray-600">
+                            Extra Time Cost: BDT {{ $car->extra_time_cost }}
+                        </p>
                         @endif
                     </div>
 
@@ -544,14 +544,14 @@ new #[Layout('components.layouts.app')] #[Title('Car Booking')] class extends Co
                             <div class="payment_method">
                                 <h5 class="p-2 bg-light font-bold">Select a payment method</h5>
                                 @foreach ($gateways as $gateway)
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input custom-radio-dot" type="radio"
-                                            id="gateway-{{ $gateway->id }}" value="{{ $gateway->id }}"
-                                            wire:model.live="payment_gateway_id">
-                                        <label class="form-check-label text-sm"
-                                            for="gateway-{{ $gateway->id }}">{{ $gateway->name }}
-                                        </label>
-                                    </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input custom-radio-dot" type="radio"
+                                        id="gateway-{{ $gateway->id }}" value="{{ $gateway->id }}"
+                                        wire:model.live="payment_gateway_id">
+                                    <label class="form-check-label text-sm"
+                                        for="gateway-{{ $gateway->id }}">{{ $gateway->name }}
+                                    </label>
+                                </div>
                                 @endforeach
                             </div>
                             <div class="flex flex-col sm:flex-row gap-x-2 gap-y-2 items-stretch">

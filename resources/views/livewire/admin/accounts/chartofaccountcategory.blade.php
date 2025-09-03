@@ -106,12 +106,8 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Account Category')] 
 
     public function accounts()
     {
-        // List of codes to exclude from the query
-        $excludeCodes = ['103', '104', '105', '106', '201', '202', '203', '205', '206', '207', '208', '301', '302', '303', '304', '305', '401', '501', '502', '503', '504'];
-
         // Optimized query with direct model usage
         return ChartOfAccount::whereNull('parent_id') // Filter out accounts with parent_id
-            ->whereNotIn('code', $excludeCodes) // Filter out specific account codes
             ->paginate(20); // Paginate the results, fetching 20 per page
     }
 
