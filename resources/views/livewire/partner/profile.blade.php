@@ -35,13 +35,13 @@ new #[Layout('components.layouts.partner')] #[Title('Business Profile')] class e
     #[Rule('nullable')]
     public $agent_image;
 
-    #[Rule('required')]
+    #[Rule('nullable')]
     public $business_name;
 
-    #[Rule('required')]
+    #[Rule('nullable')]
     public $business_phone;
 
-    #[Rule('required')]
+    #[Rule('nullable')]
     public $business_email;
 
     #[Rule('nullable')]
@@ -68,20 +68,17 @@ new #[Layout('components.layouts.partner')] #[Title('Business Profile')] class e
     #[Rule('nullable')]
     public $zipcode;
 
-    #[Rule('required')]
+    #[Rule('nullable')]
     public $country_id;
 
-    #[Rule('required')]
+    #[Rule('nullable')]
     public $division_id;
 
-    #[Rule('required')]
+    #[Rule('nullable')]
     public $district_id;
 
     #[Rule('nullable')]
     public $credit_limit;
-
-    #[Rule('required')]
-    public $status = 1;
 
     public function mount()
     {
@@ -90,7 +87,6 @@ new #[Layout('components.layouts.partner')] #[Title('Business Profile')] class e
             $this->agent = $agentRes;
             $this->propiter_name = $agentRes->user->name;
             $this->propiter_email = $agentRes->user->email;
-            $this->status = $agentRes->user->status;
             $this->business_name = $agentRes->business_name;
             $this->business_phone = $agentRes->business_phone;
             $this->business_email = $agentRes->business_email;
@@ -141,7 +137,6 @@ new #[Layout('components.layouts.partner')] #[Title('Business Profile')] class e
                 'name' => $this->propiter_name,
                 'email' => $this->propiter_email,
                 'password' => $this->password ? Hash::make($this->password) : $this->agent->user->password,
-                'status' => $this->status,
             ]);
             $this->agent->update([
                 'agent_image' => $storedAgentImagePath,
@@ -161,7 +156,7 @@ new #[Layout('components.layouts.partner')] #[Title('Business Profile')] class e
                 'district_id' => $this->district_id,
                 'credit_limit' => $this->credit_limit,
             ]);
-            $this->success('Agent Updated Successfully');
+            $this->success('Profile Updated Successfully');
         } catch (\Throwable $th) {
             $this->error($th->getMessage());
         }
@@ -180,10 +175,8 @@ new #[Layout('components.layouts.partner')] #[Title('Business Profile')] class e
                         <x-input label="Propiter Email" wire:model="propiter_email" placeholder="Propiter Email" />
                         <x-input label="Password" wire:model="password" placeholder="Password" />
                         <x-input label="Re-type Password" wire:model="" placeholder="Re-type Password" />
-                        <x-input label="Propiter NID" wire:model="propiter_nid" placeholder="Propiter NID"
-                            type="number" />
-                        <x-input label="Propiter eTin" wire:model="propiter_etin_no" placeholder="Propiter eTin"
-                            type="number" />
+                        <x-input label="Propiter NID" wire:model="propiter_nid" placeholder="Propiter NID" type="number" />
+                        <x-input label="Propiter eTin" wire:model="propiter_etin_no" placeholder="Propiter eTin" type="number" />
                     </div>
                 </x-card>
                 <x-card class="mb-4">
@@ -191,10 +184,8 @@ new #[Layout('components.layouts.partner')] #[Title('Business Profile')] class e
                     <div class="grid grid-cols-2 gap-2">
                         <x-input label="Busienss Name" wire:model="business_name" placeholder="Busienss Name" />
                         <x-input label="Busienss Phone" wire:model="business_phone" placeholder="Propiter Phone" />
-                        <x-input label="Busienss Email" wire:model="business_email" placeholder="Propiter Email"
-                            type="email" />
-                        <x-input label="Busienss Address" wire:model="business_address"
-                            placeholder="Propiter Address" />
+                        <x-input label="Busienss Email" wire:model="business_email" placeholder="Propiter Email" type="email" />
+                        <x-input label="Busienss Address" wire:model="business_address" placeholder="Propiter Address" />
                     </div>
                 </x-card>
                 <x-card class="pb-4">
@@ -212,17 +203,12 @@ new #[Layout('components.layouts.partner')] #[Title('Business Profile')] class e
             <x-card class="col-span-1" x-cloak>
                 <x-devider title="Additional Information" />
                 <div class="grid grid-cols-2 gap-2">
-                    <x-choices label="Country" :options="$countries" wire:model.live="country_id" single
-                        placeholder="Select One" />
-                    <x-choices label="Division" :options="$divisions" wire:model.live="division_id" single
-                        placeholder="Select One" />
-                    <x-choices label="District" :options="$districts" wire:model="district_id" single
-                        placeholder="Select One" />
+                    <x-choices label="Country" :options="$countries" wire:model.live="country_id" single placeholder="Select One" />
+                    <x-choices label="Division" :options="$divisions" wire:model.live="division_id" single placeholder="Select One" />
+                    <x-choices label="District" :options="$districts" wire:model="district_id" single placeholder="Select One" />
                     <x-input label="Zip Code" wire:model="zipcode" placeholder="Zip Code" />
-                    <x-input label="Primary Contact Address" wire:model="primary_contact_address"
-                        placeholder="Primary Contact Address" />
-                    <x-input label="Secondary Contact Address" wire:model="secondary_contact_address"
-                        placeholder="Secondary Contact Address" />
+                    <x-input label="Primary Contact Address" wire:model="primary_contact_address" placeholder="Primary Contact Address" />
+                    <x-input label="Secondary Contact Address" wire:model="secondary_contact_address" placeholder="Secondary Contact Address" />
                 </div>
                 <x-slot:actions>
                     <x-button type="submit" label="Save" class="btn-primary btn-sm mt-4" spinner="updateAgent" />

@@ -28,12 +28,12 @@
                 <!-- Hidden when collapsed -->
                 <div {{ $attributes->class(['hidden-when-collapsed']) }}>
                     <div class="flex items-center gap-2">
-                        <img class="w-48 h-10" src="{{ $globalSettings->favicon_link ?? '/logo.png' }}" alt="Logo">
+                        <img class="w-48 h-10" src="{{ auth()->user()->agent->business_logo_link ?? '/logo.png' }}" alt="Logo">
                     </div>
                 </div>
                 <!-- Display when collapsed -->
                 <div class="display-when-collapsed hidden mx-5 mt-4 lg:mb-6 h-[28px]">
-                    <img src="{{ $globalSettings->favicon_link ?? '/logo.png' }}" alt="Logo">
+                    <img src="{{ auth()->user()->agent->business_logo_link ?? '/logo.png' }}" alt="Logo">
                 </div>
             </a>
             <div class="ml-14">
@@ -53,8 +53,7 @@
         <x-slot:actions>
 
             <livewire:admin-notification-component />
-            <img src="{{ auth()->user()->agent->business_logo_link ?? '/empty-user.jpg' }}"
-                class="w-8 h-8 rounded-full">
+            <img src="{{ auth()->user()->agent->propiter_image_link ?? '/empty-user.jpg' }}" class="w-8 h-8 rounded-full">
             <x-dropdown label="{{ auth()->user()->agent->business_name ?? '' }}" class="btn-sm btn-primary" right>
                 <x-menu-item title="Profile" icon="fas.user" link="/partner/profile" />
                 <x-menu-item title="Logout" icon="o-power" link="/partner/logout" />
@@ -98,8 +97,7 @@
                     {{-- Tour Package --}}
                     <x-menu-sub title="Tour Package" icon="fas.globe" :open="request()->is('partner/tour/*')">
                         <x-menu-item title="Tour Package List" icon="fas.list" link="/partner/tour/list" />
-                        <x-menu-item title="Add Tour Package" icon="fas.plus" no-wire-navigate
-                            link="/partner/tour/create" />
+                        <x-menu-item title="Add Tour Package" icon="fas.plus" no-wire-navigate link="/partner/tour/create" />
                     </x-menu-sub>
                     <x-menu-separator />
                 @endif
@@ -107,8 +105,7 @@
                     {{-- Travel Product --}}
                     <x-menu-sub title="Travel Product" icon="fab.product-hunt" :open="request()->is('partner/travel-product/*')">
                         <x-menu-item title="Travel Product List" icon="fas.list" link="/partner/travel-product/list" />
-                        <x-menu-item title="Add Travel Product" icon="fas.plus" no-wire-navigate
-                            link="/partner/travel-product/create" />
+                        <x-menu-item title="Add Travel Product" icon="fas.plus" no-wire-navigate link="/partner/travel-product/create" />
                     </x-menu-sub>
                     <x-menu-separator />
 
@@ -120,8 +117,7 @@
                     {{-- Vehicle --}}
                     <x-menu-sub title="Vehicle" icon="fas.car" :open="request()->is('partner/vehicle/*')">
                         <x-menu-item title="Vehicle List" icon="fas.list" link="/partner/vehicle/list" />
-                        <x-menu-item title="Add Vehicle" icon="fas.plus" no-wire-navigate
-                            link="/partner/vehicle/create" />
+                        <x-menu-item title="Add Vehicle" icon="fas.plus" no-wire-navigate link="/partner/vehicle/create" />
                     </x-menu-sub>
                     <x-menu-separator />
                 @endif
