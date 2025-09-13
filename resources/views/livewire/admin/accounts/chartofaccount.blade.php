@@ -12,9 +12,7 @@ use Livewire\WithPagination;
 use Mary\Traits\Toast;
 
 new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class extends Component {
-    use Toast;
-    use WithFileUploads;
-    use WithPagination;
+    use Toast, WithFileUploads, WithPagination;
 
     public string $search = '';
 
@@ -166,8 +164,7 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class ex
 <div>
     <x-header title="Chart Of Account List" size="text-xl" separator class="bg-white px-2 pt-3">
         <x-slot:actions>
-            <x-button icon="fas.plus" @click="$wire.createModal = true" label="Add Chart Of Account"
-                class="btn-primary btn-sm" />
+            <x-button icon="fas.plus" @click="$wire.createModal = true" label="Add Chart Of Account" class="btn-primary btn-sm" />
         </x-slot>
     </x-header>
     <x-card>
@@ -176,24 +173,24 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class ex
                 {{ $loop->iteration + ($accounts->currentPage() - 1) * $accounts->perPage() }}
             @endscope
 
+            @scope('cell_type', $account)
+                <x-badge value="{{ $account->type }}" class="badge-primary text-white py-1 text-xs" />
+            @endscope
+
             @scope('actions', $account)
                 <div class="flex items-center gap-1">
-                    <x-button icon="fas.print" wire:click="print({{ $account['id'] }})"
-                        class="btn-primary btn-action text-white" />
+                    <x-button icon="fas.print" wire:click="print({{ $account['id'] }})" class="btn-primary btn-action text-white" />
                     <x-button icon="o-trash" wire:click="delete({{ $account['id'] }})" wire:confirm="Are you sure?"
                         class="btn-error btn-action text-white" />
-                    <x-button icon="s-pencil-square" wire:click="edit({{ $account['id'] }})"
-                        class="btn-neutral btn-action text-white" />
+                    <x-button icon="s-pencil-square" wire:click="edit({{ $account['id'] }})" class="btn-neutral btn-action text-white" />
                 </div>
             @endscope
         </x-table>
     </x-card>
     <x-modal wire:model="createModal" title="Add New Chart Of Account" separator>
         <x-form wire:submit="storeChartOfAccount">
-            <x-choices label="Type" wire:model.live="type" :options="$types" single required
-                placeholder="Select Type" />
-            <x-choices label="Category" wire:model="parent_id" :options="$categories" single required
-                placeholder="Select Category" />
+            <x-choices label="Type" wire:model.live="type" :options="$types" single required placeholder="Select Type" />
+            <x-choices label="Category" wire:model="parent_id" :options="$categories" single required placeholder="Select Category" />
             <x-input label="Account Name" wire:model="name" placeholder="Category Name" required />
             <x-slot:actions>
                 <x-button label="Cancel" class="btn-sm" @click="$wire.createModal = false" />
@@ -203,15 +200,12 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class ex
     </x-modal>
     <x-modal wire:model="editModal" title="Update {{ $account->name ?? '' }} Account" separator>
         <x-form wire:submit="updateChartOfAccount">
-            <x-choices label="Type" wire:model.live="type" :options="$types" single required
-                placeholder="Select Type" />
-            <x-choices label="Category" wire:model="parent_id" :options="$categories" single required
-                placeholder="Select Category" />
+            <x-choices label="Type" wire:model.live="type" :options="$types" single required placeholder="Select Type" />
+            <x-choices label="Category" wire:model="parent_id" :options="$categories" single required placeholder="Select Category" />
             <x-input label="Account Name" wire:model="name" placeholder="Category Name" required />
             <x-slot:actions>
                 <x-button label="Cancel" class="btn-sm" @click="$wire.editModal = false" />
-                <x-button type="submit" label="Add Account" class="btn-sm btn-primary"
-                    spinner="updateChartOfAccount" />
+                <x-button type="submit" label="Add Account" class="btn-sm btn-primary" spinner="updateChartOfAccount" />
             </x-slot>
         </x-form>
     </x-modal>
