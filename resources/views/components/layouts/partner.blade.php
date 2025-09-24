@@ -58,6 +58,7 @@
                 <x-menu-item title="Profile" icon="fas.user" link="/partner/profile" />
                 <x-menu-item title="Logout" icon="o-power" link="/partner/logout" />
             </x-dropdown>
+            <x-button link="/" label="Back To Website" class="btn-sm btn-primary" />
         </x-slot:actions>
     </x-nav>
 

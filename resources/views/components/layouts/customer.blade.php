@@ -41,6 +41,7 @@
             <livewire:admin-notification-component />
             <img src="{{ auth()->user()->customer->image_link ?? '/empty-user.jpg' }}" class="w-8 h-8 rounded-full">
             <x-button class="btn-primary btn-sm" responsive label="{{ auth()->user()->name ?? '' }}" />
+            <x-button link="/" label="Back To Website" class="btn-sm btn-primary" />
         </x-slot:actions>
     </x-nav>
 
