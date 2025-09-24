@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('incomes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_id')->constrained('customers');
+            $table->foreignId('customer_id')->nullable()->constrained('customers');
+            $table->foreignId('agent_id')->nullable()->constrained('agents');
             $table->foreignId('account_id')->constrained('chart_of_accounts');
             $table->decimal('amount', 15, 2);
             $table->string('reference')->nullable();

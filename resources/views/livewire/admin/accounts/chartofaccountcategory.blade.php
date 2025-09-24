@@ -11,8 +11,7 @@ use Livewire\WithPagination;
 use Mary\Traits\Toast;
 
 new #[Layout('components.layouts.admin')] #[Title('Chart Of Account Category')] class extends Component {
-    use Toast;
-    use WithPagination;
+    use Toast, WithPagination;
 
     public string $search = '';
 
@@ -159,15 +158,17 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Account Category')] 
                 {{ $loop->iteration + ($accounts->currentPage() - 1) * $accounts->perPage() }}
             @endscope
 
+            @scope('cell_type', $account)
+                <x-badge value="{{ $account->type }}" class="badge-primary text-white py-1 text-xs" />
+            @endscope
+
             @scope('actions', $account)
                 <div class="flex items-center gap-1">
-                    <x-button icon="fas.print" wire:click="print({{ $account['id'] }})"
-                        class="btn-primary btn-action text-white" />
+                    <x-button icon="fas.print" wire:click="print({{ $account['id'] }})" class="btn-primary btn-action text-white" />
                     @if (!in_array($account['code'], ['100', '101', '400']))
                         <x-button icon="o-trash" wire:click="delete({{ $account['id'] }})" wire:confirm="Are you sure?"
                             class="btn-error btn-action text-white" />
-                        <x-button icon="s-pencil-square" wire:click="edit({{ $account['id'] }})"
-                            class="btn-neutral btn-action text-white" />
+                        <x-button icon="s-pencil-square" wire:click="edit({{ $account['id'] }})" class="btn-neutral btn-action text-white" />
                     @endif
                 </div>
             @endscope

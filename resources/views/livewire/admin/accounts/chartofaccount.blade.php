@@ -13,9 +13,7 @@ use Livewire\Attributes\Computed;
 use App\Services\TransactionService;
 
 new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class extends Component {
-    use Toast;
-    use WithFileUploads;
-    use WithPagination;
+    use Toast, WithFileUploads, WithPagination;
 
     public string $search = '';
 
@@ -256,6 +254,10 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class ex
                 {{ $loop->iteration + ($accounts->currentPage() - 1) * $accounts->perPage() }}
             @endscope
 
+            @scope('cell_type', $account)
+                <x-badge value="{{ $account->type }}" class="badge-primary text-white py-1 text-xs" />
+            @endscope
+
             @scope('actions', $account)
                 <div class="flex items-center gap-1">
                     <x-button icon="fas.print" wire:click="print({{ $account['id'] }})" class="btn-primary btn-action text-white" />
@@ -286,7 +288,7 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class ex
             <x-input label="Opening Balance" wire:model="opening_balance" placeholder="Opening Balance" required />
             <x-slot:actions>
                 <x-button label="Cancel" class="btn-sm" @click="$wire.editModal = false" />
-                <x-button type="submit" label="Save" class="btn-sm btn-primary" spinner="updateChartOfAccount" />
+                <x-button type="submit" label="Add Account" class="btn-sm btn-primary" spinner="updateChartOfAccount" />
             </x-slot>
         </x-form>
     </x-modal>

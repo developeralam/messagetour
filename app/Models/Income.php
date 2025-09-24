@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\User;
+use App\Models\Agent;
 use App\Models\Customer;
 use App\Models\ChartOfAccount;
 use Illuminate\Database\Eloquent\Model;
@@ -19,6 +20,7 @@ class Income extends Model
      */
     protected $fillable = [
         'customer_id',
+        'agent_id',
         'account_id',
         'amount',
         'reference',
@@ -32,6 +34,13 @@ class Income extends Model
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+    /**
+     * Get the customer that owns the income.
+     */
+    public function agent()
+    {
+        return $this->belongsTo(Agent::class);
     }
     /**
      * Get the account associated with the income.

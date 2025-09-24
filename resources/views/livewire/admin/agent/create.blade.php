@@ -45,55 +45,55 @@ new #[Layout('components.layouts.admin')] #[Title('Add New Agent')] class extend
     #[Rule('required|same:password')]
     public $confirmation_password;
 
-    #[Rule('required')]
+    #[Rule('nullable')]
     public $agent_image;
 
-    #[Rule('required')]
+    #[Rule('nullable')]
     public $agent_type;
 
-    #[Rule('required')]
+    #[Rule('nullable')]
     public $business_name;
 
     #[Rule('required')]
     public $business_phone;
 
-    #[Rule('required')]
+    #[Rule('nullable')]
     public $business_email;
 
-    #[Rule('required')]
+    #[Rule('nullable')]
     public $business_logo;
 
     #[Rule('required')]
     public $propiter_nid;
 
-    #[Rule('required')]
+    #[Rule('nullable')]
     public $propiter_etin_no;
 
-    #[Rule('required')]
+    #[Rule('nullable')]
     public $trade_licence;
 
-    #[Rule('required')]
+    #[Rule('nullable')]
     public $business_address;
 
-    #[Rule('required')]
+    #[Rule('nullable')]
     public $primary_contact_address;
 
-    #[Rule('required')]
+    #[Rule('nullable')]
     public $secondary_contact_address;
 
     #[Rule('nullable')]
     public $zipcode;
 
-    #[Rule('required')]
+    #[Rule('nullable')]
     public $validity;
 
-    #[Rule('required')]
+    #[Rule('nullable')]
     public $country_id;
 
-    #[Rule('required')]
+    #[Rule('nullable')]
     public $division_id;
 
-    #[Rule('required')]
+    #[Rule('nullable')]
     public $district_id;
 
     #[Rule('nullable')]
@@ -239,58 +239,57 @@ new #[Layout('components.layouts.admin')] #[Title('Add New Agent')] class extend
                             placeholder="Re-type Password" right />
                         <x-input label="Propiter NID" class="mb-4" wire:model="propiter_nid" required
                             placeholder="Propiter NID" type="number" />
-                        <x-input label="Propiter eTin" class="mb-4" wire:model="propiter_etin_no" required
+                        <x-input label="Propiter eTin" class="mb-4" wire:model="propiter_etin_no"
                             placeholder="Propiter eTin" type="number" />
                     </div>
                 </x-card>
                 <x-card class="mb-2">
                     <x-devider title="Business Information" />
                     <div class="grid grid-cols-3 gap-2">
-                        <x-input label="Business Name" wire:model="business_name" required
-                            placeholder="Business Name" />
+                        <x-input label="Business Name" wire:model="business_name" placeholder="Business Name" />
                         <x-choices label="Business Type" wire:model="agent_type" :options="$agentTypes" single required
                             placeholder="Business Type" />
                         <x-input label="Business Phone" wire:model="business_phone" required
                             placeholder="Business Phone" />
-                        <x-input label="Business Email" wire:model="business_email" required
-                            placeholder="Business Email" type="email" />
-                        <x-input label="Business Address" wire:model="business_address" required
+                        <x-input label="Business Email" wire:model="business_email" placeholder="Business Email"
+                            type="email" />
+                        <x-input label="Business Address" wire:model="business_address"
                             placeholder="Business Address" />
-                        <x-datetime label="Business Validity" wire:model="validity" required />
+                        <x-datetime label="Business Validity" wire:model="validity" />
                     </div>
                 </x-card>
                 <x-card class="pb-10">
                     <x-devider title="Upload Business Documents" />
                     <div class="grid grid-cols-3 gap-2">
-                        <x-file label="Propiter Imager" wire:model="agent_image" required />
-                        <x-file label="Business Logo" wire:model="business_logo" required />
-                        <x-file label="Trade Licence" wire:model="trade_licence" required />
+                        <x-file label="Propiter Imager" wire:model="agent_image" />
+                        <x-file label="Business Logo" wire:model="business_logo" />
+                        <x-file label="Trade Licence" wire:model="trade_licence" />
                     </div>
                 </x-card>
             </div>
             <div class="col-span-1">
                 <x-card>
                     <x-devider title="Additional Information" />
-                    <x-choices label="Country" :options="$countries" single wire:model.live="country_id" required
+                    <x-choices label="Country" :options="$countries" single wire:model.live="country_id"
                         placeholder="Select One" class="mb-4" />
                     <div class="grid grid-cols-2 gap-2 mb-4">
-                        <x-choices label="Division" :options="$divisions" single wire:model.live="division_id" required
+                        <x-choices label="Division" :options="$divisions" single wire:model.live="division_id"
                             placeholder="Select One" />
-                        <x-choices label="District" :options="$districts" single wire:model="district_id" required
+                        <x-choices label="District" :options="$districts" single wire:model="district_id"
                             placeholder="Select One" />
                     </div>
-                    <x-input label="Zip Code" class="mb-4" wire:model="zipcode" required placeholder="Zip Code" />
+                    <x-input label="Zip Code" class="mb-4" wire:model="zipcode" placeholder="Zip Code" />
                     <div class="grid grid-cols-2 gap-2 mb-4">
-                        <x-input label="Primary Address" wire:model="primary_contact_address" required
+                        <x-input label="Primary Address" wire:model="primary_contact_address"
                             placeholder="Primary Contact Address" />
-                        <x-input label="Secondary Address" wire:model="secondary_contact_address" required
+                        <x-input label="Secondary Address" wire:model="secondary_contact_address"
                             placeholder="Secondary Contact Address" />
                     </div>
                     <x-input label="Credit Limit" class="mb-4" wire:model="credit_limit" placeholder="Credit Limit"
                         type="number" />
                     <div class="flex gap-6 mb-3">
-                        <x-radio label="Agent Status" :options="$statusOptions" wire:model="propiter_status" required />
-                        <x-radio label="Business Status" :options="$businessStatus" wire:model="status" required />
+                        <x-radio label="Agent Status" :options="$statusOptions" wire:model="propiter_status" />
+                        <x-radio label="Business Status" :options="$businessStatus" wire:model="status" />
                     </div>
                     <x-slot:actions>
                         <x-button label="Agent List" link="/admin/agent/list" class="btn-sm" />
