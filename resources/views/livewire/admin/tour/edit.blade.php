@@ -7,6 +7,7 @@ use Mary\Traits\Toast;
 use App\Models\Country;
 use App\Models\District;
 use App\Models\Division;
+use App\Enum\CountryStatus;
 use App\Traits\InteractsWithImageUploads;
 use Illuminate\Support\Str;
 use Livewire\Volt\Component;
@@ -91,7 +92,7 @@ new #[Layout('components.layouts.admin')] #[Title('Update Tour')] class extends 
         $this->tour = $tour;
         $this->tour_types = TourType::getTourTypes();
         $this->tour_status = TourStatus::getTourStatuses();
-        $this->countries = Country::all();
+        $this->countries = Country::where('status', CountryStatus::Active)->get();
         $this->title = $tour->title;
         $this->location = $tour->location;
         $this->start_date = $tour->start_date->format('Y-m-d');
@@ -119,6 +120,31 @@ new #[Layout('components.layouts.admin')] #[Title('Update Tour')] class extends 
     public function districts()
     {
         $this->districts = District::query()->when($this->division_id, fn(Builder $q) => $q->where('division_id', $this->division_id))->get();
+    }
+
+    public function countrySearch(string $search = '')
+    {
+        $searchTerm = '%' . $search . '%';
+
+        $countries = Country::where('status', CountryStatus::Active)->where('name', 'like', $searchTerm)->limit(5)->get();
+
+        $this->countries = $countries;
+    }
+
+    public function divisionSearch(string $search = '')
+    {
+        $searchTerm = '%' . $search . '%';
+        $divisions = Division::where('country_id', $this->country_id)->where('name', 'like', $searchTerm)->limit(5)->get();
+
+        $this->divisions = $divisions;
+    }
+
+    public function districtSearch(string $search = '')
+    {
+        $searchTerm = '%' . $search . '%';
+        $districts = District::where('division_id', $this->division_id)->where('name', 'like', $searchTerm)->limit(5)->get();
+
+        $this->districts = $districts;
     }
     public function updated($property)
     {
@@ -204,19 +230,18 @@ new #[Layout('components.layouts.admin')] #[Title('Update Tour')] class extends 
                     <x-input label="Tour Location" wire:model="location" placeholder="Tour Location" required />
                 </div>
                 <div class="grid grid-cols-3 gap-2 mb-4">
-                    <x-choices label="Country" :options="$countries" class="mb-2" wire:model.live="country_id" single
-                        required placeholder="Select One" />
-                    <x-choices label="Division" :options="$divisions" class="mb-2" wire:model.live="division_id" single
-                        required placeholder="Select One" />
-                    <x-choices label="District" :options="$districts" class="mb-2" wire:model="district_id" single
-                        required placeholder="Select One" />
+                    <x-choices wire:model.live="country_id" :options="$countries" label="Country" placeholder="Select Country" single required
+                        search-function="countrySearch" searchable />
+                    <x-choices wire:model.live="division_id" :options="$divisions" label="Division" placeholder="Select Division" single required
+                        search-function="divisionSearch" searchable />
+                    <x-choices wire:model.live="district_id" :options="$districts" label="District" placeholder="Select District" single required
+                        search-function="districtSearch" searchable />
                     <x-datetime label="Start Date" type="date" wire:model="start_date" required />
                     <x-datetime label="End Date" type="date" wire:model="end_date" required />
                     <x-datetime label="Tour Validity" type="date" wire:model="validity" required />
                 </div>
                 <div class="grid grid-cols-2 gap-2 mb-4">
-                    <x-input label="Regular Price" wire:model="regular_price" placeholder="Regular Price" type="number"
-                        required />
+                    <x-input label="Regular Price" wire:model="regular_price" placeholder="Regular Price" type="number" required />
                     <x-input label="Offer Price" wire:model="offer_price" placeholder="Offer Price" type="number" />
                 </div>
                 <div wire:ignore class="pb-6">
@@ -227,10 +252,8 @@ new #[Layout('components.layouts.admin')] #[Title('Update Tour')] class extends 
             <div class="col-span-1">
                 <x-card>
                     <div class="grid grid-cols-2 gap-2 mb-4">
-                        <x-choices label="Tour Type" :options="$tour_types" wire:model="type" single
-                            placeholder="Select Type" required />
-                        <x-choices label="Tour Status" :options="$tour_status" wire:model="status" single
-                            placeholder="Select Status" required />
+                        <x-choices label="Tour Type" :options="$tour_types" wire:model="type" single placeholder="Select Type" required />
+                        <x-choices label="Tour Status" :options="$tour_status" wire:model="status" single placeholder="Select Status" required />
                     </div>
 
                     <div class="mb-4">
@@ -238,10 +261,8 @@ new #[Layout('components.layouts.admin')] #[Title('Update Tour')] class extends 
                     </div>
 
                     <div class="grid grid-cols-2 gap-2 mb-4">
-                        <x-input label="Member Range" wire:model="member_range" placeholder="Member Range"
-                            type="number" required />
-                        <x-input label="Minimum Passenger" wire:model="minimum_passenger"
-                            placeholder="Minimum Passenger" type="number" required />
+                        <x-input label="Member Range" wire:model="member_range" placeholder="Member Range" type="number" required />
+                        <x-input label="Minimum Passenger" wire:model="minimum_passenger" placeholder="Minimum Passenger" type="number" required />
                     </div>
 
                     <x-file label="Thumbnail" wire:model="thumbnail" accept="image/png, image/jpeg">
@@ -254,16 +275,14 @@ new #[Layout('components.layouts.admin')] #[Title('Update Tour')] class extends 
                         $config = ['guides' => false];
                     @endphp
 
-                    <x-image-library wire:model="files" :crop-config="$config" {{-- Temprary files --}} wire:library="library"
-                        {{-- Library metadata property --}} :preview="$library" {{-- Preview control --}} label="Tour images"
-                        hint="Max 100Kb" change-text="Change" crop-text="Crop" remove-text="Remove"
-                        crop-title-text="Crop image" crop-cancel-text="Cancel" crop-save-text="Crop"
+                    <x-image-library wire:model="files" :crop-config="$config" {{-- Temprary files --}} wire:library="library" {{-- Library metadata property --}}
+                        :preview="$library" {{-- Preview control --}} label="Tour images" hint="Max 100Kb" change-text="Change" crop-text="Crop"
+                        remove-text="Remove" crop-title-text="Crop image" crop-cancel-text="Cancel" crop-save-text="Crop"
                         add-files-text="Add tour images" />
 
                     <x-slot:actions>
                         <x-button label="Tour List" link="/admin/tour/list" class="btn-sm" />
-                        <x-button type="updateTour" label="Update Tour" class="btn-primary btn-sm"
-                            spinner="updateTour" />
+                        <x-button type="updateTour" label="Update Tour" class="btn-primary btn-sm" spinner="updateTour" />
                     </x-slot>
                 </x-card>
             </div>

@@ -7,6 +7,7 @@ use App\Enum\AgentType;
 use App\Models\Country;
 use App\Models\District;
 use App\Models\Division;
+use App\Enum\CountryStatus;
 use App\Enum\AgentStatus;
 use App\Enum\UserStatus;
 use Livewire\Volt\Component;
@@ -104,7 +105,7 @@ new #[Layout('components.layouts.admin')] #[Title('Add New Agent')] class extend
 
     public function mount()
     {
-        $this->countries = Country::all();
+        $this->countries = Country::where('status', CountryStatus::Active)->get();
         $this->divisions = collect();
         $this->districts = collect();
         $this->agentTypes = AgentType::getTypes();
@@ -135,6 +136,31 @@ new #[Layout('components.layouts.admin')] #[Title('Add New Agent')] class extend
     public function districts()
     {
         $this->districts = District::query()->when($this->division_id, fn(Builder $q) => $q->where('division_id', $this->division_id))->get();
+    }
+
+    public function countrySearch(string $search = '')
+    {
+        $searchTerm = '%' . $search . '%';
+
+        $countries = Country::where('status', CountryStatus::Active)->where('name', 'like', $searchTerm)->limit(5)->get();
+
+        $this->countries = $countries;
+    }
+
+    public function divisionSearch(string $search = '')
+    {
+        $searchTerm = '%' . $search . '%';
+        $divisions = Division::where('country_id', $this->country_id)->where('name', 'like', $searchTerm)->limit(5)->get();
+
+        $this->divisions = $divisions;
+    }
+
+    public function districtSearch(string $search = '')
+    {
+        $searchTerm = '%' . $search . '%';
+        $districts = District::where('division_id', $this->division_id)->where('name', 'like', $searchTerm)->limit(5)->get();
+
+        $this->districts = $districts;
     }
 
     /**
@@ -230,31 +256,22 @@ new #[Layout('components.layouts.admin')] #[Title('Add New Agent')] class extend
                 <x-card class="mb-2">
                     <x-devider title="Propiter Information" />
                     <div class="grid grid-cols-3 gap-2">
-                        <x-input label="Propiter Name" class="mb-4" wire:model="propiter_name" required
-                            placeholder="Propiter Name" />
-                        <x-input label="Propiter Email" class="mb-4" wire:model="propiter_email" required
-                            placeholder="Propiter Email" />
+                        <x-input label="Propiter Name" class="mb-4" wire:model="propiter_name" required placeholder="Propiter Name" />
+                        <x-input label="Propiter Email" class="mb-4" wire:model="propiter_email" required placeholder="Propiter Email" />
                         <x-password label="Password" wire:model="password" placeholder="Password" required right />
-                        <x-password label="Re-type Password" wire:model="confirmation_password" required
-                            placeholder="Re-type Password" right />
-                        <x-input label="Propiter NID" class="mb-4" wire:model="propiter_nid" required
-                            placeholder="Propiter NID" type="number" />
-                        <x-input label="Propiter eTin" class="mb-4" wire:model="propiter_etin_no"
-                            placeholder="Propiter eTin" type="number" />
+                        <x-password label="Re-type Password" wire:model="confirmation_password" required placeholder="Re-type Password" right />
+                        <x-input label="Propiter NID" class="mb-4" wire:model="propiter_nid" required placeholder="Propiter NID" type="number" />
+                        <x-input label="Propiter eTin" class="mb-4" wire:model="propiter_etin_no" placeholder="Propiter eTin" type="number" />
                     </div>
                 </x-card>
                 <x-card class="mb-2">
                     <x-devider title="Business Information" />
                     <div class="grid grid-cols-3 gap-2">
                         <x-input label="Business Name" wire:model="business_name" placeholder="Business Name" />
-                        <x-choices label="Business Type" wire:model="agent_type" :options="$agentTypes" single required
-                            placeholder="Business Type" />
-                        <x-input label="Business Phone" wire:model="business_phone" required
-                            placeholder="Business Phone" />
-                        <x-input label="Business Email" wire:model="business_email" placeholder="Business Email"
-                            type="email" />
-                        <x-input label="Business Address" wire:model="business_address"
-                            placeholder="Business Address" />
+                        <x-choices label="Business Type" wire:model="agent_type" :options="$agentTypes" single required placeholder="Business Type" />
+                        <x-input label="Business Phone" wire:model="business_phone" required placeholder="Business Phone" />
+                        <x-input label="Business Email" wire:model="business_email" placeholder="Business Email" type="email" />
+                        <x-input label="Business Address" wire:model="business_address" placeholder="Business Address" />
                         <x-datetime label="Business Validity" wire:model="validity" />
                     </div>
                 </x-card>
@@ -270,31 +287,27 @@ new #[Layout('components.layouts.admin')] #[Title('Add New Agent')] class extend
             <div class="col-span-1">
                 <x-card>
                     <x-devider title="Additional Information" />
-                    <x-choices label="Country" :options="$countries" single wire:model.live="country_id"
-                        placeholder="Select One" class="mb-4" />
+                    <x-choices wire:model.live="country_id" :options="$countries" label="Country" placeholder="Select Country" single
+                        search-function="countrySearch" searchable class="mb-4" />
                     <div class="grid grid-cols-2 gap-2 mb-4">
-                        <x-choices label="Division" :options="$divisions" single wire:model.live="division_id"
-                            placeholder="Select One" />
-                        <x-choices label="District" :options="$districts" single wire:model="district_id"
-                            placeholder="Select One" />
+                        <x-choices wire:model.live="division_id" :options="$divisions" label="Division" placeholder="Select Division" single
+                            search-function="divisionSearch" searchable />
+                        <x-choices wire:model.live="district_id" :options="$districts" label="District" placeholder="Select District" single
+                            search-function="districtSearch" searchable />
                     </div>
                     <x-input label="Zip Code" class="mb-4" wire:model="zipcode" placeholder="Zip Code" />
                     <div class="grid grid-cols-2 gap-2 mb-4">
-                        <x-input label="Primary Address" wire:model="primary_contact_address"
-                            placeholder="Primary Contact Address" />
-                        <x-input label="Secondary Address" wire:model="secondary_contact_address"
-                            placeholder="Secondary Contact Address" />
+                        <x-input label="Primary Address" wire:model="primary_contact_address" placeholder="Primary Contact Address" />
+                        <x-input label="Secondary Address" wire:model="secondary_contact_address" placeholder="Secondary Contact Address" />
                     </div>
-                    <x-input label="Credit Limit" class="mb-4" wire:model="credit_limit" placeholder="Credit Limit"
-                        type="number" />
+                    <x-input label="Credit Limit" class="mb-4" wire:model="credit_limit" placeholder="Credit Limit" type="number" />
                     <div class="flex gap-6 mb-3">
                         <x-radio label="Agent Status" :options="$statusOptions" wire:model="propiter_status" />
                         <x-radio label="Business Status" :options="$businessStatus" wire:model="status" />
                     </div>
                     <x-slot:actions>
                         <x-button label="Agent List" link="/admin/agent/list" class="btn-sm" />
-                        <x-button type="submit" label="Add Agent" class="btn-primary btn-sm"
-                            spinner="storeAgent" />
+                        <x-button type="submit" label="Add Agent" class="btn-primary btn-sm" spinner="storeAgent" />
                     </x-slot:actions>
                 </x-card>
             </div>

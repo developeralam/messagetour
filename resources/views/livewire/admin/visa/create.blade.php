@@ -6,6 +6,7 @@ use Mary\Traits\Toast;
 use App\Models\Country;
 use App\Models\VisaFee;
 use App\Enum\VisaStatus;
+use App\Enum\CountryStatus;
 use Illuminate\Support\Str;
 use Livewire\Volt\Component;
 use Livewire\Attributes\Rule;
@@ -20,6 +21,7 @@ new #[Layout('components.layouts.admin')] #[Title('Add New Visa')] class extends
     use Toast, WithFileUploads, InteractsWithImageUploads;
 
     public Collection $countries;
+    public Collection $destinationCountries;
     public $types = [];
     public $statuses = [];
     public $rows = [];
@@ -72,6 +74,7 @@ new #[Layout('components.layouts.admin')] #[Title('Add New Visa')] class extends
     public function mount()
     {
         $this->countries = Country::all();
+        $this->destinationCountries = Country::all();
         $this->types = VisaType::getVisaTypes();
         $this->statuses = VisaStatus::getStatuses();
         $this->rows[] = [
@@ -85,6 +88,22 @@ new #[Layout('components.layouts.admin')] #[Title('Add New Visa')] class extends
             'fee_type' => null,
             'fee' => null,
         ];
+    }
+    public function countrySearch(string $search = '')
+    {
+        $searchTerm = '%' . $search . '%';
+
+        $citizen = Country::where('status', CountryStatus::Active)->where('name', 'like', $searchTerm)->limit(5)->get();
+
+        $this->countries = $citizen;
+    }
+    public function destinationCountrySearch(string $search = '')
+    {
+        $searchTerm = '%' . $search . '%';
+
+        $citizen = Country::where('status', CountryStatus::Active)->where('name', 'like', $searchTerm)->limit(5)->get();
+
+        $this->destinationCountries = $citizen;
     }
     public function storeVisa()
     {
@@ -192,16 +211,13 @@ new #[Layout('components.layouts.admin')] #[Title('Add New Visa')] class extends
                 <x-devider title="Additional Information" />
                 <div class="grid grid-cols-2 gap-3 mb-3">
                     <x-choices label="Visa Type" :options="$types" single wire:model="type" required />
-                    <x-choices label="Visa Status" :options="$statuses" single wire:model="status"
-                        placeholder="Select Status" required />
-                    <x-choices label="Origin Country" :options="$countries" single wire:model="origin_country"
-                        placeholder="Select One" required />
-                    <x-choices label="Destination Country" :options="$countries" single wire:model="destination_country"
-                        placeholder="Select One" required />
-                    <x-input label="Processing Time" wire:model="processing_time" placeholder="30 Days" type="number"
-                        required />
-                    <x-input label="Coinvenient Fee" wire:model="convenient_fee" placeholder="50000" type="number"
-                        required />
+                    <x-choices label="Visa Status" :options="$statuses" single wire:model="status" placeholder="Select Status" required />
+                    <x-choices label="Origin Country" :options="$countries" single wire:model.live="origin_country" placeholder="Select One" required
+                        search-function="countrySearch" searchable />
+                    <x-choices label="Destination Country" :options="$destinationCountries" single wire:model.live="destination_country" placeholder="Select One"
+                        required search-function="destinationCountrySearch" searchable />
+                    <x-input label="Processing Time" wire:model="processing_time" placeholder="30 Days" type="number" required />
+                    <x-input label="Coinvenient Fee" wire:model="convenient_fee" placeholder="50000" type="number" required />
                     <x-input label="SKU" wire:model="sku_code" placeholder="SKU" required />
                 </div>
                 <x-file label="Application Form" wire:model="application_form" />
@@ -211,14 +227,11 @@ new #[Layout('components.layouts.admin')] #[Title('Add New Visa')] class extends
                     <div x-cloak class="grid grid-cols-2 mt-4 gap-2">
                         <x-input wire:model.live="rows.{{ $index }}.fee_type" placeholder="Visa Fee Type" />
                         <div class="flex gap-2">
-                            <x-input wire:model.live="rows.{{ $index }}.fee" placeholder="Visa Fee"
-                                type="number" />
+                            <x-input wire:model.live="rows.{{ $index }}.fee" placeholder="Visa Fee" type="number" />
                             @if ($index == 0)
-                                <x-icon class="cursor-pointer text-green-700 w-4" name="fas.circle-plus"
-                                    wire:click="addVisaFee" />
+                                <x-icon class="cursor-pointer text-green-700 w-4" name="fas.circle-plus" wire:click="addVisaFee" />
                             @endif
-                            <x-icon class="cursor-pointer text-red-700 w-4" name="fas.circle-xmark"
-                                wire:click="removeRow({{ $index }})" />
+                            <x-icon class="cursor-pointer text-red-700 w-4" name="fas.circle-xmark" wire:click="removeRow({{ $index }})" />
                         </div>
                     </div>
                 @endforeach

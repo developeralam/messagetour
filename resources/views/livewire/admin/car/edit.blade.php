@@ -9,6 +9,7 @@ use App\Models\Country;
 use App\Enum\RentalType;
 use App\Models\District;
 use App\Models\Division;
+use App\Enum\CountryStatus;
 use Illuminate\Support\Str;
 use Livewire\Volt\Component;
 use Livewire\Attributes\Rule;
@@ -139,7 +140,9 @@ new #[Layout('components.layouts.admin')] #[Title('Update Car')] class extends C
         $this->carTypes = CarType::getTypes();
         $this->carStatus = CarStatus::getStatuses();
         $this->rentalTypes = RentalType::getRentalTypes();
-        $this->countries = Country::select(['id', 'name'])->get();
+        $this->countries = Country::where('status', CountryStatus::Active)
+            ->select(['id', 'name'])
+            ->get();
         $this->divisions();
         $this->districts();
     }
@@ -161,6 +164,31 @@ new #[Layout('components.layouts.admin')] #[Title('Update Car')] class extends C
     public function districts()
     {
         $this->districts = District::query()->when($this->division_id, fn($q) => $q->where('division_id', $this->division_id))->get();
+    }
+
+    public function countrySearch(string $search = '')
+    {
+        $searchTerm = '%' . $search . '%';
+
+        $countries = Country::where('status', CountryStatus::Active)->where('name', 'like', $searchTerm)->limit(5)->get();
+
+        $this->countries = $countries;
+    }
+
+    public function divisionSearch(string $search = '')
+    {
+        $searchTerm = '%' . $search . '%';
+        $divisions = Division::where('country_id', $this->country_id)->where('name', 'like', $searchTerm)->limit(5)->get();
+
+        $this->divisions = $divisions;
+    }
+
+    public function districtSearch(string $search = '')
+    {
+        $searchTerm = '%' . $search . '%';
+        $districts = District::where('division_id', $this->division_id)->where('name', 'like', $searchTerm)->limit(5)->get();
+
+        $this->districts = $districts;
     }
 
     public function storeCar()
@@ -224,14 +252,11 @@ new #[Layout('components.layouts.admin')] #[Title('Update Car')] class extends C
                     <x-devider title="Vehicle Information" />
                     <div class="grid grid-cols-3 gap-4">
                         <x-input label="Vehicle Title" wire:model="title" placeholder="Vehicle Title" required />
-                        <x-choices label="Vehicle Type" wire:model="car_type" placeholder="Select Vehicle Type" single
-                            :options="$carTypes" required />
-                        <x-input type="number" label="Model Year" wire:model="model_year"
-                            placeholder="Vehicle Model Year" required />
-                        <x-input type="number" label="Seating Capacity" wire:model="seating_capacity"
-                            placeholder="Vehicle Seating Capacity required" required />
-                        <x-input type="number" label="Vehicle Cc" wire:model="car_cc" placeholder="Vehicle CC"
+                        <x-choices label="Vehicle Type" wire:model="car_type" placeholder="Select Vehicle Type" single :options="$carTypes" required />
+                        <x-input type="number" label="Model Year" wire:model="model_year" placeholder="Vehicle Model Year" required />
+                        <x-input type="number" label="Seating Capacity" wire:model="seating_capacity" placeholder="Vehicle Seating Capacity required"
                             required />
+                        <x-input type="number" label="Vehicle Cc" wire:model="car_cc" placeholder="Vehicle CC" required />
                         <x-input label="Vehicle Color" wire:model="color" placeholder="Vehicle Color" required />
                         <x-input label="Area Limitation" wire:model="area_limitation" placeholder="Area Limitation" />
                         <x-input label="Max Distance" wire:model="max_distance" placeholder="100 KM" />
@@ -239,12 +264,12 @@ new #[Layout('components.layouts.admin')] #[Title('Update Car')] class extends C
                     </div>
                     <x-devider title="Locations" />
                     <div class="grid grid-cols-3 gap-4">
-                        <x-choices label="Country" wire:model.live="country_id" placeholder="Select Country" single
-                            :options="$countries" required />
-                        <x-choices label="Division/State" wire:model.live="division_id" placeholder="Select Division"
-                            single :options="$divisions" required wire:change="divisions" />
-                        <x-choices label="District/City" wire:model="district_id" placeholder="Select District" single
-                            :options="$districts" wire:change="districts" />
+                        <x-choices wire:model.live="country_id" :options="$countries" label="Country" placeholder="Select Country" single required
+                            search-function="countrySearch" searchable />
+                        <x-choices wire:model.live="division_id" :options="$divisions" label="Division/State" placeholder="Select Division" single
+                            required search-function="divisionSearch" searchable />
+                        <x-choices wire:model.live="district_id" :options="$districts" label="District/City" placeholder="Select District" single
+                            search-function="districtSearch" searchable />
                     </div>
                     <x-devider title="Pricing Information" />
                     <div wire:ignore>
@@ -261,27 +286,17 @@ new #[Layout('components.layouts.admin')] #[Title('Update Car')] class extends C
                 <x-card>
                     <x-devider title="Additional Information" />
                     <div class="grid grid-cols-2 gap-4 mb-4">
-                        <x-input type="number" label="Price 2 Hours" wire:model="price_2_hours"
-                            placeholder="Price 2 Hours" required />
-                        <x-input type="number" label="Price 4 Hours" wire:model="price_4_hours"
-                            placeholder="Price 4 Hours" required />
-                        <x-input type="number" label="Price Half Day" wire:model="price_half_day"
-                            placeholder="Price Half Day" required />
-                        <x-input type="number" label="Price Day" wire:model="price_day" placeholder="Price Day"
-                            required />
-                        <x-input type="number" label="Price Per Day" wire:model="price_per_day"
-                            placeholder="Price Per Day" required />
-                        <x-input type="number" label="Extra Time Cost By Hour" wire:model="extra_time_cost"
-                            placeholder="Extra Time Cost By Hour" />
-                        <x-input type="number" label="Extra Time Cost" wire:model="extra_time_cost_by_hour"
-                            placeholder="Extra Time Cost" />
-                        <x-choices label="Rental Type" wire:model="with_driver" placeholder="Select Status" single
-                            :options="$rentalTypes" required />
-                        <x-choices label="Status" wire:model="status" placeholder="Select Status" single
-                            :options="$carStatus" required />
+                        <x-input type="number" label="Price 2 Hours" wire:model="price_2_hours" placeholder="Price 2 Hours" required />
+                        <x-input type="number" label="Price 4 Hours" wire:model="price_4_hours" placeholder="Price 4 Hours" required />
+                        <x-input type="number" label="Price Half Day" wire:model="price_half_day" placeholder="Price Half Day" required />
+                        <x-input type="number" label="Price Day" wire:model="price_day" placeholder="Price Day" required />
+                        <x-input type="number" label="Price Per Day" wire:model="price_per_day" placeholder="Price Per Day" required />
+                        <x-input type="number" label="Extra Time Cost By Hour" wire:model="extra_time_cost" placeholder="Extra Time Cost By Hour" />
+                        <x-input type="number" label="Extra Time Cost" wire:model="extra_time_cost_by_hour" placeholder="Extra Time Cost" />
+                        <x-choices label="Rental Type" wire:model="with_driver" placeholder="Select Status" single :options="$rentalTypes" required />
+                        <x-choices label="Status" wire:model="status" placeholder="Select Status" single :options="$carStatus" required />
                     </div>
-                    <x-file wire:model="image" label="Image" accept="images/png, images/jpeg,images/jpg"
-                        class="mb-2" />
+                    <x-file wire:model="image" label="Image" accept="images/png, images/jpeg,images/jpg" class="mb-2" />
                     <x-checkbox label="Ac Facility" wire:model="ac_facility" class="w-4 h-4" />
 
                     <x-slot:actions>

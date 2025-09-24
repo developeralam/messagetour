@@ -8,6 +8,7 @@ use App\Enum\UserStatus;
 use App\Models\Customer;
 use App\Models\District;
 use App\Models\Division;
+use App\Enum\CountryStatus;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Rule;
@@ -78,7 +79,7 @@ new #[Layout('components.layouts.admin')] #[Title('Customer List')] class extend
     {
         $this->headers = $this->headers();
         $this->statuses = UserStatus::getStatuses();
-        $this->countries = Country::orderBy('name', 'asc')->get();
+        $this->countries = Country::where('status', CountryStatus::Active)->orderBy('name', 'asc')->get();
         $this->status = UserStatus::Active;
     }
 
@@ -204,6 +205,31 @@ new #[Layout('components.layouts.admin')] #[Title('Customer List')] class extend
         if (!is_array($property) && $property != '') {
             $this->resetPage();
         }
+    }
+
+    public function countrySearch(string $search = '')
+    {
+        $searchTerm = '%' . $search . '%';
+
+        $countries = Country::where('status', CountryStatus::Active)->where('name', 'like', $searchTerm)->limit(5)->get();
+
+        $this->countries = $countries;
+    }
+
+    public function divisionSearch(string $search = '')
+    {
+        $searchTerm = '%' . $search . '%';
+        $divisions = Division::where('country_id', $this->country_id)->where('name', 'like', $searchTerm)->limit(5)->get();
+
+        $this->divisions = $divisions;
+    }
+
+    public function districtSearch(string $search = '')
+    {
+        $searchTerm = '%' . $search . '%';
+        $districts = District::where('division_id', $this->division_id)->where('name', 'like', $searchTerm)->limit(5)->get();
+
+        $this->districts = $districts;
     }
 
     /**
@@ -366,8 +392,7 @@ new #[Layout('components.layouts.admin')] #[Title('Customer List')] class extend
         <x-slot:actions>
             <x-button label="Send Sms" @click="$wire.smsModal = true" class="btn-primary btn-sm" />
             <x-button label="Send Mail" @click="$wire.emailModal = true" class="btn-primary btn-sm" />
-            <x-button label="Add Customer" icon="o-plus" @click="$wire.createModal = true"
-                class="btn-primary btn-sm" />
+            <x-button label="Add Customer" icon="o-plus" @click="$wire.createModal = true" class="btn-primary btn-sm" />
         </x-slot:actions>
     </x-header>
     <x-card>
@@ -383,21 +408,19 @@ new #[Layout('components.layouts.admin')] #[Title('Customer List')] class extend
             @endscope
             @scope('cell_status', $customer)
                 @if ($customer->user->status == \App\Enum\UserStatus::Active)
-                    <x-badge value="{{ $customer->user->status->label() }}"
-                        class="bg-green-100 text-green-700 p-3 text-xs font-semibold" />
+                    <x-badge value="{{ $customer->user->status->label() }}" class="bg-green-100 text-green-700 p-3 text-xs font-semibold" />
                 @elseif ($customer->user->status == \App\Enum\UserStatus::Inactive)
-                    <x-badge value="{{ $customer->user->status->label() }}"
-                        class="bg-red-100 text-red-700 p-3 text-xs font-semibold" />
+                    <x-badge value="{{ $customer->user->status->label() }}" class="bg-red-100 text-red-700 p-3 text-xs font-semibold" />
                 @endif
             @endscope
             @scope('actions', $customer)
                 <div class="flex items-center gap-1">
-                    <x-button icon="o-trash" wire:click="delete({{ $customer['id'] }})" wire:confirm="Are you sure?"
-                        class="btn-error btn-action" spinner="delete({{ $customer['id'] }})" />
-                    <x-button icon="s-pencil-square" wire:click="edit({{ $customer['id'] }})"
-                        spinner="edit({{ $customer['id'] }})" class="btn-neutral btn-action" />
-                    <x-button icon="fas.right-to-bracket" wire:click="login({{ $customer['user']['id'] }})"
-                        class="btn-primary btn-action text-white" spinner="login({{ $customer['user']['id'] }})" />
+                    <x-button icon="o-trash" wire:click="delete({{ $customer['id'] }})" wire:confirm="Are you sure?" class="btn-error btn-action"
+                        spinner="delete({{ $customer['id'] }})" />
+                    <x-button icon="s-pencil-square" wire:click="edit({{ $customer['id'] }})" spinner="edit({{ $customer['id'] }})"
+                        class="btn-neutral btn-action" />
+                    <x-button icon="fas.right-to-bracket" wire:click="login({{ $customer['user']['id'] }})" class="btn-primary btn-action text-white"
+                        spinner="login({{ $customer['user']['id'] }})" />
                 </div>
             @endscope
         </x-table>
@@ -407,17 +430,16 @@ new #[Layout('components.layouts.admin')] #[Title('Customer List')] class extend
             <div class="grid grid-cols-3 gap-4">
                 <x-input label="Customer Name" placeholder="Customer Name" wire:model="name" required />
                 <x-input label="Customer Email" placeholder="Customer Email Address" wire:model="email" required />
-                <x-choices label="Country" wire:model.live="country_id" placeholder="Select Country" :options="$countries"
-                    single />
-                <x-choices label="Division" wire:model.live="division_id" placeholder="Select Division"
-                    :options="$divisions" single />
-                <x-choices label="District" wire:model="district_id" placeholder="Select District" :options="$districts"
-                    single />
+                <x-choices wire:model.live="country_id" :options="$countries" label="Country" placeholder="Select Country" single
+                    search-function="countrySearch" searchable />
+                <x-choices wire:model.live="division_id" :options="$divisions" label="Division" placeholder="Select Division" single
+                    search-function="divisionSearch" searchable />
+                <x-choices wire:model.live="district_id" :options="$districts" label="District" placeholder="Select District" single
+                    search-function="districtSearch" searchable />
                 <x-input label="Primary Address" placeholder="Primary Address" wire:model="address" />
                 <x-input label="Secondary Address" placeholder="Secondary Address" wire:model="secondary_address" />
                 <x-password label="Password" placeholder="Password" wire:model="password" required right />
-                <x-password label="Confirm Password" placeholder="Confirm Password" wire:model="confirmation_password"
-                    required right />
+                <x-password label="Confirm Password" placeholder="Confirm Password" wire:model="confirmation_password" required right />
                 <x-radio label="Customer Status" :options="$statuses" wire:model="status" />
                 <x-file wire:model="image" label="Customer Image" />
             </div>
@@ -427,23 +449,21 @@ new #[Layout('components.layouts.admin')] #[Title('Customer List')] class extend
             </x-slot:actions>
         </x-form>
     </x-modal>
-    <x-modal wire:model="editModal" title="Update Customer - {{ $customer->user->name ?? '' }}" size="text-xl"
-        separator boxClass="max-w-6xl">
+    <x-modal wire:model="editModal" title="Update Customer - {{ $customer->user->name ?? '' }}" size="text-xl" separator boxClass="max-w-6xl">
         <x-form wire:submit="updateCustomer">
             <div class="grid grid-cols-3 gap-4">
                 <x-input label="Customer Name" placeholder="Customer Name" wire:model="name" required />
                 <x-input label="Customer Email" placeholder="Customer Email Address" wire:model="email" required />
-                <x-choices label="Country" wire:model.live="country_id" placeholder="Select Country" :options="$countries"
-                    single />
-                <x-choices label="Division" wire:model.live="division_id" placeholder="Select Division"
-                    :options="$divisions" single />
-                <x-choices label="District" wire:model="district_id" placeholder="Select District" :options="$districts"
-                    single />
+                <x-choices wire:model.live="country_id" :options="$countries" label="Country" placeholder="Select Country" single
+                    search-function="countrySearch" searchable />
+                <x-choices wire:model.live="division_id" :options="$divisions" label="Division" placeholder="Select Division" single
+                    search-function="divisionSearch" searchable />
+                <x-choices wire:model.live="district_id" :options="$districts" label="District" placeholder="Select District" single
+                    search-function="districtSearch" searchable />
                 <x-input label="Primary Address" placeholder="Primary Address" wire:model="address" />
                 <x-input label="Secondary Address" placeholder="Secondary Address" wire:model="secondary_address" />
                 <x-password label="Password" placeholder="Password" wire:model="password" right />
-                <x-password label="Confirm Password" placeholder="Confirm Password"
-                    wire:model="confirmation_password" right />
+                <x-password label="Confirm Password" placeholder="Confirm Password" wire:model="confirmation_password" right />
                 <x-radio label="Customer Status" :options="$statuses" wire:model="status" />
                 <x-file wire:model="image" label="Customer Image" />
             </div>

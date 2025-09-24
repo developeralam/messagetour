@@ -7,6 +7,7 @@ use App\Models\Country;
 use App\Models\District;
 use App\Models\Division;
 use App\Enum\HotelStatus;
+use App\Enum\CountryStatus;
 use Illuminate\Support\Str;
 use Livewire\Volt\Component;
 use Livewire\Attributes\Rule;
@@ -92,7 +93,7 @@ new #[Layout('components.layouts.partner')] #[Title('Hotel Edit')] class extends
     public function mount()
     {
         if ($this->hotel) {
-            $this->countries = Country::all();
+            $this->countries = Country::where('status', CountryStatus::Active)->get();
             $this->name = $this->hotel->name;
             $this->address = $this->hotel->address;
             $this->country_id = $this->hotel->country_id;
@@ -123,6 +124,31 @@ new #[Layout('components.layouts.partner')] #[Title('Hotel Edit')] class extends
     public function districts()
     {
         $this->districts = District::query()->when($this->division_id, fn(Builder $q) => $q->where('division_id', $this->division_id))->get();
+    }
+
+    public function countrySearch(string $search = '')
+    {
+        $searchTerm = '%' . $search . '%';
+
+        $citizen = Country::where('status', CountryStatus::Active)->where('name', 'like', $searchTerm)->limit(5)->get();
+
+        $this->countries = $citizen;
+    }
+
+    public function divisionSearch(string $search = '')
+    {
+        $searchTerm = '%' . $search . '%';
+        $divisions = Division::where('country_id', $this->country_id)->where('name', 'like', $searchTerm)->limit(5)->get();
+
+        $this->divisions = $divisions;
+    }
+
+    public function districtSearch(string $search = '')
+    {
+        $searchTerm = '%' . $search . '%';
+        $districts = District::where('division_id', $this->division_id)->where('name', 'like', $searchTerm)->limit(5)->get();
+
+        $this->districts = $districts;
     }
     public function updated($property)
     {
@@ -205,27 +231,24 @@ new #[Layout('components.layouts.partner')] #[Title('Hotel Edit')] class extends
                 <x-card>
                     <x-devider title="Hotel Information" />
                     <div class="grid grid-cols-3 gap-2">
-                        <x-input label="Hotel Name" class="mb-4" wire:model="name" placeholder="Hotel Name"
-                            required />
-                        <x-input label="Hotel Address" class="mb-4" wire:model="address" placeholder="Ex:Cox's Bazar"
-                            required />
+                        <x-input label="Hotel Name" class="mb-4" wire:model="name" placeholder="Hotel Name" required />
+                        <x-input label="Hotel Address" class="mb-4" wire:model="address" placeholder="Ex:Cox's Bazar" required />
                         <x-input label="Phone" class="mb-4" wire:model="phone" placeholder="Phone" required />
                         <x-input label="Email" class="mb-4" wire:model="email" placeholder="Email" required />
                         <x-input label="Zip Code" class="mb-4" wire:model="zipcode" placeholder="Ex: 1703" />
-                        <x-input label="Website" class="mb-4" wire:model="website"
-                            placeholder="Ex: https://example.com" />
+                        <x-input label="Website" class="mb-4" wire:model="website" placeholder="Ex: https://example.com" />
 
                     </div>
                 </x-card>
                 <x-card class="mt-2">
                     <x-devider title="Hotel Location, Description, Map" />
                     <div class="grid grid-cols-3 gap-2 mb-4">
-                        <x-choices label="Country" :options="$countries" single required wire:model.live="country_id"
-                            placeholder="Select One" />
-                        <x-choices label="Division" :options="$divisions" single required wire:model.live="division_id"
-                            placeholder="Select One" />
-                        <x-choices label="District" :options="$districts" single required wire:model="district_id"
-                            placeholder="Select One" />
+                        <x-choices wire:model.live="country_id" :options="$countries" label="Country" placeholder="Select Country" single required
+                            search-function="countrySearch" searchable />
+                        <x-choices wire:model.live="division_id" :options="$divisions" label="Division" placeholder="Select Division" single required
+                            search-function="divisionSearch" searchable />
+                        <x-choices wire:model.live="district_id" :options="$districts" label="District" placeholder="Select District"
+                            search-function="districtSearch" searchable single required />
 
                     </div>
                     <div wire:ignore class="mb-4">
@@ -238,18 +261,15 @@ new #[Layout('components.layouts.partner')] #[Title('Hotel Edit')] class extends
             <div class="col-span-1">
                 <x-card>
                     <x-devider title="Additional Information" />
-                    <div
-                        class="{{ $status != HotelStatus::Pending ? 'grid grid-cols-2 gap-2 mb-4' : 'grid grid-cols-1 mb-4' }}">
+                    <div class="{{ $status != HotelStatus::Pending ? 'grid grid-cols-2 gap-2 mb-4' : 'grid grid-cols-1 mb-4' }}">
 
-                        <x-choices label="Hotel Type" :options="$types" required wire:model="type" single
-                            class="mb-4" />
+                        <x-choices label="Hotel Type" :options="$types" required wire:model="type" single class="mb-4" />
 
                         @if ($status != HotelStatus::Pending)
                             <x-choices label="Hotel Status" :options="collect($hotel_status)
                                 ->filter(fn($status) => $status['name'] != 'Pending' || $status['id'] == $status)
                                 ->values()
-                                ->all()" wire:model="status" single
-                                placeholder="Select Status" required />
+                                ->all()" wire:model="status" single placeholder="Select Status" required />
                         @endif
                     </div>
                     <div class="grid grid-cols-2 gap-2 mb-4">
@@ -263,9 +283,9 @@ new #[Layout('components.layouts.partner')] #[Title('Hotel Edit')] class extends
                     <x-file class="mb-4" label="Thumbnail" wire:model="thumbnail" required>
                         <img src="{{ asset('empty-hotel.png') }}" alt="" class="h-20 rounded-lg">
                     </x-file>
-                    <x-image-library wire:model="files" {{-- Temprary files --}} wire:library="library"
-                        {{-- Library metadata property --}} :preview="$library" {{-- Preview control --}} label="Hotel Images"
-                        hint="Max 100Kb" change-text="Change" remove-text="Remove" add-files-text="Add Hotel Images" />
+                    <x-image-library wire:model="files" {{-- Temprary files --}} wire:library="library" {{-- Library metadata property --}} :preview="$library"
+                        {{-- Preview control --}} label="Hotel Images" hint="Max 100Kb" change-text="Change" remove-text="Remove"
+                        add-files-text="Add Hotel Images" />
                     <x-slot:actions>
                         <x-button label="Hotel List" link="/partner/hotel/list" class="btn-sm" />
                         <x-button type="submit" label="Save Hotel" class="btn-primary btn-sm" />
