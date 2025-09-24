@@ -147,15 +147,13 @@ new #[Layout('components.layouts.service-details')] #[Title('Tour List')] class 
                 <div class="col-span-1 md:col-span-3 border p-3 rounded-md shadow-md bg-white md:h-[620px]">
                     <div class="flex justify-between mt-4 mb-4">
                         <span class="font-semibold text-md">Filter By</span>
-                        <x-button class="btn-primary custom-reset-button btn-sm" label="RESET"
-                            wire:click="resetFilters" />
+                        <x-button class="btn-primary custom-reset-button btn-sm" label="RESET" wire:click="resetFilters" />
                     </div>
                     <div class="border-t-2 border-green-400 my-3 font-semibold">
                         <h3 class="py-2 mt-2">Price Range</h3>
                         <div class="mb-2 px-2 mx-1">
                             <div class="flex justify-center items-center">
-                                <div class="relative max-w-xl w-full" x-data="rangeSlider()" x-init="init()"
-                                    id="range-slider">
+                                <div class="relative max-w-xl w-full" x-data="rangeSlider()" x-init="init()" id="range-slider">
                                     <!-- Slider Track -->
                                     <div class="relative z-10 h-1">
                                         <div class="absolute z-10 left-0 right-0 bottom-0 top-0 rounded-md bg-green-50">
@@ -164,15 +162,13 @@ new #[Layout('components.layouts.service-details')] #[Title('Tour List')] class 
                                             :style="`left: ${minPercent}%; width: ${maxPercent - minPercent}%`"></div>
 
                                         <!-- Min Thumb -->
-                                        <div x-ref="minThumb" @mousedown="startDrag('min', $event)"
-                                            @touchstart.prevent="startDrag('min', $event)"
+                                        <div x-ref="minThumb" @mousedown="startDrag('min', $event)" @touchstart.prevent="startDrag('min', $event)"
                                             class="absolute z-30 w-4 h-4 border-2 border-green-500 rounded-full -mt-1.5 -ml-4 bg-white cursor-pointer"
                                             :style="`left: ${minPercent}%`">
                                         </div>
 
                                         <!-- Max Thumb -->
-                                        <div x-ref="maxThumb" @mousedown="startDrag('max', $event)"
-                                            @touchstart.prevent="startDrag('max', $event)"
+                                        <div x-ref="maxThumb" @mousedown="startDrag('max', $event)" @touchstart.prevent="startDrag('max', $event)"
                                             class="absolute z-30 w-4 h-4 border-2 border-green-500 rounded-full -mt-1.5 -mr-4 bg-white cursor-pointer"
                                             :style="`left: ${maxPercent}%`">
                                         </div>
@@ -182,21 +178,17 @@ new #[Layout('components.layouts.service-details')] #[Title('Tour List')] class 
                                     <div class="flex justify-between items-center py-2">
                                         <div>
                                             <label class="text-xs font-normal">Minimum Price</label>
-                                            <p class="font-bold text-center">BDT <span
-                                                    x-text="currentMin.toLocaleString()"></span></p>
+                                            <p class="font-bold text-center">BDT <span x-text="currentMin.toLocaleString()"></span></p>
                                         </div>
                                         <div>
                                             <label class="text-xs font-normal">Maximum Price</label>
-                                            <p class="font-bold text-center">BDT <span
-                                                    x-text="currentMax.toLocaleString()"></span></p>
+                                            <p class="font-bold text-center">BDT <span x-text="currentMax.toLocaleString()"></span></p>
                                         </div>
                                     </div>
 
                                     <!-- Livewire Reactive Hidden Inputs -->
-                                    <input type="hidden" wire:model.debounce.500ms="min_price"
-                                        x-effect="$wire.set('min_price', currentMin)">
-                                    <input type="hidden" wire:model.debounce.500ms="max_price"
-                                        x-effect="$wire.set('max_price', currentMax)">
+                                    <input type="hidden" wire:model.debounce.500ms="min_price" x-effect="$wire.set('min_price', currentMin)">
+                                    <input type="hidden" wire:model.debounce.500ms="max_price" x-effect="$wire.set('max_price', currentMax)">
 
                                 </div>
                             </div>
@@ -205,8 +197,7 @@ new #[Layout('components.layouts.service-details')] #[Title('Tour List')] class 
                     <div class="my-5">
                         <h3 class="border-b-2 border-green-400 pb-3 mb-2 font-semibold">Search Tour</h3>
                         <div>
-                            <x-input wire:model.live="tour_keyword_input"
-                                placeholder="Search by tour, district, or division"
+                            <x-input wire:model.live="tour_keyword_input" placeholder="Search by tour, district, or division"
                                 class="w-full custome-input-field" />
                         </div>
                     </div>
@@ -214,8 +205,7 @@ new #[Layout('components.layouts.service-details')] #[Title('Tour List')] class 
                         <h3 class="border-b-2 border-green-400 pb-3 mb-2 font-semibold">Tour Type</h3>
                         @foreach ($tour_types as $type)
                             <label class="mb-2 flex items-center gap-2 cursor-pointer">
-                                <input type="radio" class="custom-radio-dot" wire:model.live="tour_type"
-                                    value="{{ $type['id'] }}" />
+                                <input type="radio" class="custom-radio-dot" wire:model.live="tour_type" value="{{ $type['id'] }}" />
                                 <span class="text-sm font-medium">{{ $type['name'] }}</span>
                             </label>
                         @endforeach
@@ -224,86 +214,104 @@ new #[Layout('components.layouts.service-details')] #[Title('Tour List')] class 
                 <div class="col-span-1 md:col-span-9">
                     @foreach ($tours as $tour)
                         <div
-                            class="grid grid-cols-12 items-start gap-x-4 gap-y-3 border rounded-md shadow-lg mb-2 p-3 bg-white">
-                            <div class="col-span-12 md:col-span-3 h-44 rounded-md overflow-hidden shadow-md">
-                                <img class="object-cover h-full w-full" src="{{ $tour->thumbnail_link }}"
-                                    alt="" />
-                            </div>
+                            class="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 mb-6 overflow-hidden border border-gray-100 hover:border-green-200">
+                            <!-- Gradient overlay for image -->
+                            <div class="relative">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10"></div>
+                                <img class="w-full h-64 md:h-72 object-cover group-hover:scale-105 transition-transform duration-700"
+                                    src="{{ $tour->thumbnail_link }}" alt="{{ $tour->title }}" />
 
-                            <div class="col-span-12 md:col-span-9 lg:col-span-6">
-                                <a class="cursor-pointer text-md font-semibold hover:text-green-600" wire:navigate
-                                    href="/tour/{{ $tour->slug }}?keyword={{ $tour_keyword ?: $tour->id . '-tours' }}&tour_type={{ $tour_type ?: $tour->type }}">
-                                    {{ $tour->title }} <p class="flex items-center gap-x-1 md:text-base text-red-500">
-                                    </p>
-                                </a>
-
-
-                                <div class="w-full xs::w-2/4 flex gap-3 mt-2">
-                                    <p class="text-xs md:text-sm" style="margin-top: 0">
-                                        <x-icon name="fas.location-dot" class="text-green-500" />
-                                        <span>{{ $tour->location ?? '' }}</span>
-                                    </p>
-                                    <ul class="flex items-center" style="margin-top: 0">
-                                        <li class="flex items-center gap-1 text-xs rounded-full">
-                                            <x-icon name="fas.calendar-days" class="text-green-500" />
-                                            <span>
-                                                {{ Carbon::parse($tour->start_date)->diffInDays(Carbon::parse($tour->end_date)) }}
-                                                Day{{ Carbon::parse($tour->start_date)->diffInDays(Carbon::parse($tour->end_date)) > 1 ? 's' : '' }}
-                                            </span>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <div class="flex text-sm text-justify mt-3">
-                                    📝
-                                    <p>
-                                        {!! \Illuminate\Support\Str::limit($tour->description ?? '', 255, ' <span class="text-green-500">..</span>') !!}
-                                    </p>
+                                <!-- Floating badge for tour type -->
+                                <div class="absolute top-4 left-4 z-20">
+                                    <span
+                                        class="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
+                                        {{ $tour->type ?? 'Tour' }}
+                                    </span>
                                 </div>
 
-                            </div>
-                            <div class="col-span-12 my-auto lg:col-span-3 rounded-lg shadow-lg border p-3 bg-gray-100">
-                                <div
-                                    class="w-full xs:w-2/4 flex flex-col items-center xs:items-end justify-end gap-y-1">
-                                    <small class="text-xs text-gray-600 font-semibold">Price starts from (per
-                                        person)</small>
-                                    @if ($tour->offer_price && $tour->offer_price < $tour->regular_price)
-                                        <p class="flex items-center gap-x-1 md:text-base text-red-500">
-                                            <del class="text-sm">BDT {{ number_format($tour->regular_price) }}</del>
-                                        </p>
-                                    @endif
-
-                                    <div class="flex items-start">
-                                        @if ($tour->offer_price && $tour->offer_price < $tour->regular_price)
-                                            <img class="mt-[6px]" src="{{ asset('images/discount-mono.svg') }}"
-                                                alt="" />
-                                            <p class="text-sm md:text-base flex items-center whitespace-nowrap gap-x-1">
-                                                @php
-                                                    $discountPercentage = round(
-                                                        (($tour->regular_price - $tour->offer_price) /
-                                                            $tour->regular_price) *
-                                                            100,
-                                                    );
-                                                @endphp
-
-                                                <span class="text-[#f73] text-xs font-bold">{{ $discountPercentage }}%
-                                                    OFF</span>
-                                                <span class="font-bold">BDT
-                                                    {{ number_format($tour->offer_price) }}</span>
-
-                                            </p>
-                                        @else
-                                            <p class="text-sm md:text-base flex items-center whitespace-nowrap gap-x-1">
-                                                <span class="font-bold">BDT
-                                                    {{ number_format($tour->regular_price) }}</span>
-                                            </p>
-                                        @endif
+                                <!-- Discount badge -->
+                                @if ($tour->offer_price && $tour->offer_price < $tour->regular_price)
+                                    @php
+                                        $discountPercentage = round((($tour->regular_price - $tour->offer_price) / $tour->regular_price) * 100);
+                                    @endphp
+                                    <div class="absolute top-4 right-4 z-20">
+                                        <div
+                                            class="bg-gradient-to-r from-red-500 to-pink-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg animate-pulse">
+                                            {{ $discountPercentage }}% OFF
+                                        </div>
                                     </div>
-                                    <a wire:navigate
-                                        href="/tour/{{ $tour->slug }}?keyword={{ $tour_keyword ?: $tour->id . '-tours' }}&tour_type={{ $tour_type ?: $tour->type }}"
-                                        class="py-1 px-4 text-xs md:text-sm mt-4 font-bold bg-green-500 hover:bg-green-600 transition-all duration-100 text-white border border-green-500 uppercase shadow-md rounded-md">
-                                        Book Now
-                                    </a>
+                                @endif
+
+                                <!-- Tour title overlay -->
+                                <div class="absolute bottom-4 left-4 right-4 z-20">
+                                    <h3 class="text-white text-lg md:text-xl font-bold mb-2 drop-shadow-lg">
+                                        {{ $tour->title }}
+                                    </h3>
                                 </div>
+                            </div>
+
+                            <!-- Content section -->
+                            <div class="p-6">
+                                <!-- Location and duration info -->
+                                <div class="flex flex-wrap items-center gap-4 mb-4">
+                                    <div class="flex items-center gap-2 text-gray-600">
+                                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                            <x-icon name="fas.location-dot" class="text-green-600 text-sm" />
+                                        </div>
+                                        <span class="text-sm font-medium">{{ $tour->location ?? 'Location not specified' }}</span>
+                                    </div>
+                                    <div class="flex items-center gap-2 text-gray-600">
+                                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                            <x-icon name="fas.calendar-days" class="text-blue-600 text-sm" />
+                                        </div>
+                                        <span class="text-sm font-medium">
+                                            {{ Carbon::parse($tour->start_date)->diffInDays(Carbon::parse($tour->end_date)) }}
+                                            Day{{ Carbon::parse($tour->start_date)->diffInDays(Carbon::parse($tour->end_date)) > 1 ? 's' : '' }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Description -->
+                                <div class="mb-6">
+                                    <p class="text-gray-700 text-sm leading-relaxed line-clamp-3">
+                                        {!! \Illuminate\Support\Str::limit($tour->description ?? '', 200, '...') !!}
+                                    </p>
+                                </div>
+
+                                <!-- Price and booking section -->
+                                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pt-4 border-t border-gray-100">
+                                    <!-- Price section -->
+                                    <div class="flex flex-col">
+                                        <span class="text-xs text-gray-500 font-medium mb-1">Starting from (per person)</span>
+                                        <div class="flex items-center gap-2">
+                                            @if ($tour->offer_price && $tour->offer_price < $tour->regular_price)
+                                                <span class="text-lg text-gray-400 line-through">BDT {{ number_format($tour->regular_price) }}</span>
+                                                <span class="text-2xl font-bold text-green-600">BDT {{ number_format($tour->offer_price) }}</span>
+                                            @else
+                                                <span class="text-2xl font-bold text-green-600">BDT {{ number_format($tour->regular_price) }}</span>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    <!-- Action buttons -->
+                                    <div class="flex gap-3">
+                                        <a wire:navigate
+                                            href="/tour/{{ $tour->slug }}?keyword={{ $tour_keyword ?: $tour->id . '-tours' }}&tour_type={{ $tour_type ?: $tour->type }}"
+                                            class="flex-1 md:flex-none px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl text-center">
+                                            View Details
+                                        </a>
+                                        <a wire:navigate
+                                            href="/tour/{{ $tour->slug }}?keyword={{ $tour_keyword ?: $tour->id . '-tours' }}&tour_type={{ $tour_type ?: $tour->type }}"
+                                            class="flex-1 md:flex-none px-6 py-3 bg-white border-2 border-green-500 text-green-600 hover:bg-green-500 hover:text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl text-center">
+                                            Book Now
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Hover effect overlay -->
+                            <div
+                                class="absolute inset-0 bg-gradient-to-r from-green-500/0 to-emerald-600/0 group-hover:from-green-500/5 group-hover:to-emerald-600/5 transition-all duration-500 pointer-events-none">
                             </div>
                         </div>
                     @endforeach
@@ -368,6 +376,76 @@ new #[Layout('components.layouts.service-details')] #[Title('Tour List')] class 
                 };
             }
         </script>
+
+        <style>
+            /* Custom styles for the new tour card design */
+            .line-clamp-3 {
+                display: -webkit-box;
+                -webkit-line-clamp: 3;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+
+            /* Enhanced hover effects */
+            .group:hover .group-hover\:scale-105 {
+                transform: scale(1.05);
+            }
+
+            /* Smooth transitions for all elements */
+            .transition-all {
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            /* Custom shadow effects */
+            .shadow-lg {
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            }
+
+            .hover\:shadow-2xl:hover {
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            }
+
+            /* Gradient text effects */
+            .bg-gradient-to-r {
+                background-image: linear-gradient(to right, var(--tw-gradient-stops));
+            }
+
+            /* Custom animation for discount badge */
+            @keyframes pulse {
+
+                0%,
+                100% {
+                    opacity: 1;
+                }
+
+                50% {
+                    opacity: 0.8;
+                }
+            }
+
+            .animate-pulse {
+                animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            }
+
+            /* Responsive improvements */
+            @media (max-width: 768px) {
+                .group .absolute.top-4 {
+                    top: 1rem;
+                }
+
+                .group .absolute.bottom-4 {
+                    bottom: 1rem;
+                }
+
+                .group .absolute.left-4 {
+                    left: 1rem;
+                }
+
+                .group .absolute.right-4 {
+                    right: 1rem;
+                }
+            }
+        </style>
     @endpush
     <livewire:corporate-query-component />
 
