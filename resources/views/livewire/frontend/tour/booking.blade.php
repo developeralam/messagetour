@@ -1,6 +1,7 @@
 <?php
 
 use Carbon\Carbon;
+use App\Models\Bank;
 use App\Models\Tour;
 use App\Models\User;
 use App\Models\Order;
@@ -14,10 +15,13 @@ use App\Models\Division;
 use App\Enum\OrderStatus;
 use App\Enum\ProductType;
 use App\Models\Commission;
+use App\Enum\CountryStatus;
 use App\Enum\PaymentStatus;
 use App\Models\TourBooking;
 use Livewire\Volt\Component;
 use App\Jobs\OrderInvoiceJob;
+use App\Jobs\SendCustomerMailJob;
+use App\Jobs\SendAgentMailJob;
 use App\Enum\CommissionStatus;
 use App\Mail\OrderInvoiceMail;
 use App\Models\PaymentGateway;
@@ -28,12 +32,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Cache;
 use App\Notifications\OrderNotification;
+use App\Traits\InteractsWithImageUploads;
 use App\Services\SSLCOMMERZPaymentService;
 use App\Services\BkashPaymentGatewayService;
 use Illuminate\Support\Facades\Notification;
 
 new #[Layout('components.layouts.app')] #[Title('Tour Booking')] class extends Component {
-    use Toast;
+    use Toast, InteractsWithImageUploads;
     public $tour;
     public $countries = [];
     public $gateways = [];
@@ -53,6 +58,11 @@ new #[Layout('components.layouts.app')] #[Title('Tour Booking')] class extends C
     public $total_amount;
     public $agentDiscount = 0;
     public $discountPercentage = 0;
+    public $banks = [];
+    public $selected_bank_id;
+    public $payment_receipt;
+    public $divisions = [];
+    public $districts = [];
 
     public function mount($slug)
     {
@@ -66,13 +76,21 @@ new #[Layout('components.layouts.app')] #[Title('Tour Booking')] class extends C
         $this->division_id = auth()->user()->customer->division_id ?? '';
         $this->district_id = auth()->user()->customer->district_id ?? '';
         $this->countries = Country::orderBy('name', 'asc')->get();
+        $this->banks = Bank::with('country')->orderBy('name', 'asc')->get();
+        $this->divisions = Division::when($this->country_id, function ($q) {
+            $q->where('country_id', intval($this->country_id));
+        })->get();
+        $this->districts = District::when($this->division_id, function ($q) {
+            $q->where('division_id', intval($this->division_id));
+        })->get();
         $query = PaymentGateway::where('is_active', 1);
 
         if (auth()->user()?->type !== UserType::Agent) {
             $query->where('name', '!=', 'Wallet');
+            $query->where('name', '!=', 'Manual');
         }
 
-        $this->gateways = $query->get();
+        $this->gateways = $query->where('id', '!=', 4)->get();
 
         // Default price
         $this->subtotal = $this->tour->offer_price && $this->tour->offer_price < $this->tour->regular_price ? $this->tour->offer_price : $this->tour->regular_price;
@@ -135,6 +153,30 @@ new #[Layout('components.layouts.app')] #[Title('Tour Booking')] class extends C
         $this->updateTotalAmount();
     }
 
+    public function countrySearch(string $search = '')
+    {
+        $searchTerm = '%' . $search . '%';
+
+        $citizen = Country::where('status', CountryStatus::Active)->where('name', 'like', $searchTerm)->limit(5)->get();
+
+        $this->countries = $citizen;
+    }
+    public function divisionSearch(string $search = '')
+    {
+        $searchTerm = '%' . $search . '%';
+        $divisions = Division::where('country_id', $this->country_id)->where('name', 'like', $searchTerm)->limit(5)->get();
+
+        $this->divisions = $divisions;
+    }
+
+    public function districtSearch(string $search = '')
+    {
+        $searchTerm = '%' . $search . '%';
+        $districts = District::where('division_id', $this->division_id)->where('name', 'like', $searchTerm)->limit(5)->get();
+
+        $this->districts = $districts;
+    }
+
     /**
      * Reset coupon amount and display an error message.
      *
@@ -149,11 +191,42 @@ new #[Layout('components.layouts.app')] #[Title('Tour Booking')] class extends C
 
     public function updated($property)
     {
-        if ($property == 'payment_gateway_id') {
-            $gateway = PaymentGateway::find($this->payment_gateway_id);
-            $this->delivery_charge = $gateway ? $gateway->charge : 0;
-            $this->updateTotalAmount();
+        match ($property) {
+            'payment_gateway_id' => $this->updatePaymentGateway(),
+            'country_id' => $this->updateDivisions(),
+            'division_id' => $this->updateDistricts(),
+            default => null,
+        };
+    }
+
+    private function updatePaymentGateway()
+    {
+        $gateway = PaymentGateway::find($this->payment_gateway_id);
+
+        if ($gateway) {
+            $this->delivery_charge = ($this->subtotal * $gateway->charge) / 100;
+        } else {
+            $this->delivery_charge = 0;
         }
+
+        $this->updateTotalAmount();
+    }
+
+    private function updateDivisions()
+    {
+        $this->divisions = Division::when($this->country_id, function ($q) {
+            $q->where('country_id', intval($this->country_id));
+        })->get();
+
+        $this->division_id = null;
+        $this->districts = collect();
+    }
+
+    private function updateDistricts()
+    {
+        $this->districts = District::when($this->division_id, function ($q) {
+            $q->where('division_id', intval($this->division_id));
+        })->get();
     }
 
     public function updateTotalAmount()
@@ -182,7 +255,7 @@ new #[Layout('components.layouts.app')] #[Title('Tour Booking')] class extends C
                 'coupon_amount' => $this->coupon_amount,
                 'subtotal' => $this->subtotal,
                 'delivery_charge' => $this->delivery_charge,
-                'tran_id' => uniqid(),
+                'tran_id' => uniqid('flyvaly_'),
                 'total_amount' => $this->total_amount,
                 'status' => OrderStatus::Pending,
                 'payment_gateway_id' => $this->payment_gateway_id,
@@ -205,9 +278,21 @@ new #[Layout('components.layouts.app')] #[Title('Tour Booking')] class extends C
             $order->save();
             DB::commit();
 
+            // Send invoice email to customer
             OrderInvoiceJob::dispatch(auth()->user()->email, $order);
 
-            // Send notifications
+            // Send booking confirmation email to customer
+            $customerSubject = 'Tour Booking Confirmation - ' . $this->tour->title;
+            $customerEmailBody = 'Dear ' . auth()->user()->name . ',<br><br>' . 'Thank you for booking the tour: <strong>' . $this->tour->title . '</strong><br><br>' . 'Your booking ID: <strong>' . $order->tran_id . '</strong><br>' . 'Total Amount: <strong>৳' . number_format($order->total_amount, 2) . '</strong><br><br>' . 'We will contact you soon with further details.<br><br>' . 'Best regards,<br>FlyValy Team';
+
+            SendCustomerMailJob::dispatch(
+                auth()->user()->email,
+                [], // No BCC for customer email
+                $customerSubject,
+                $customerEmailBody,
+            );
+
+            // Send notifications and emails
             $admins = User::where('type', UserType::Admin)->get();
             $tourCreator = User::find($this->tour->created_by); // Find the tour creator
             $message = $this->tour->title . ' booked by ' . auth()->user()->name;
@@ -220,9 +305,20 @@ new #[Layout('components.layouts.app')] #[Title('Tour Booking')] class extends C
             // Notify all admins
             Notification::send($admins, new OrderNotification($order, $message));
 
-            // Notify the tour creator only if they exist and are NOT an admin
+            // Send email to tour creator (partner) if they exist and are NOT an admin
             if ($tourCreator && $tourCreator->type !== UserType::Admin) {
                 $tourCreator->notify(new OrderNotification($order, $message));
+
+                // Send email to tour creator
+                $partnerSubject = 'New Tour Booking - ' . $this->tour->title;
+                $partnerEmailBody = 'Dear ' . $tourCreator->name . ',<br><br>' . 'Great news! Your tour <strong>' . $this->tour->title . '</strong> has been booked by <strong>' . auth()->user()->name . '</strong>.<br><br>' . 'Booking Details:<br>' . 'Order ID: <strong>' . $order->tran_id . '</strong><br>' . 'Customer: <strong>' . auth()->user()->name . '</strong><br>' . 'Email: <strong>' . auth()->user()->email . '</strong><br>' . 'Phone: <strong>' . $order->phone . '</strong><br>' . 'Total Amount: <strong>৳' . number_format($order->total_amount, 2) . '</strong><br><br>' . 'Please contact the customer for further arrangements.<br><br>' . 'Best regards,<br>FlyValy Team';
+
+                SendAgentMailJob::dispatch(
+                    $tourCreator->email,
+                    [], // No BCC for partner email
+                    $partnerSubject,
+                    $partnerEmailBody,
+                );
             }
 
             if ($order->payment_gateway_id == 3) {
@@ -278,6 +374,41 @@ new #[Layout('components.layouts.app')] #[Title('Tour Booking')] class extends C
                 $this->redirectRoute('order.invoice', ['order' => $order->id]);
             }
 
+            if ($order->payment_gateway_id == 6) {
+                // Handle manual payment
+                // Store payment receipt and bank information
+
+                $storedThumbnailPath = null;
+                if ($this->payment_receipt) {
+                    $apiKey = env('IMGBB_API_KEY') ?? '30624d49f53abfcec50351257ad0ce43';
+                    $uploadUrl = env('IMGBB_UPLOAD_URL') ?? 'https://api.imgbb.com/1/upload';
+
+                    // Convert Livewire file to base64
+                    $imageData = base64_encode(file_get_contents($this->payment_receipt->path()));
+
+                    $response = Http::asForm()->post($uploadUrl, [
+                        'key' => $apiKey,
+                        'image' => $imageData,
+                    ]);
+
+                    $result = $response->json();
+
+                    if (isset($result['data']['url'])) {
+                        // ✅ Replace file path with actual ImgBB URL
+                        $storedThumbnailPath = $result['data']['url'];
+                    } else {
+                        throw new \Exception('ImgBB upload failed for payment receipt: ' . json_encode($result));
+                    }
+                }
+                $order->payment_receipt = $storedThumbnailPath;
+
+                $order->selected_bank_id = $this->selected_bank_id;
+                $order->save();
+
+                $this->success('Tour booking submitted successfully! Your payment will be verified manually.');
+                $this->redirectRoute('order.invoice', ['order' => $order->id]);
+            }
+
             $this->success('Tour Booking Successfully');
         } catch (\Throwable $th) {
             DB::rollBack();
@@ -288,12 +419,8 @@ new #[Layout('components.layouts.app')] #[Title('Tour Booking')] class extends C
     public function with(): array
     {
         return [
-            'divisions' => Division::when($this->country_id, function ($q) {
-                $q->where('country_id', intval($this->country_id));
-            })->get(),
-            'districts' => District::when($this->division_id, function ($q) {
-                $q->where('division_id', intval($this->division_id));
-            })->get(),
+            'divisions' => $this->divisions,
+            'districts' => $this->districts,
         ];
     }
 }; ?>
@@ -302,8 +429,8 @@ new #[Layout('components.layouts.app')] #[Title('Tour Booking')] class extends C
     @section('booking')
         <div class="flex items-center space-x-1 justify-center text-white mt-10 font-extrabold text-xl">
             <a href="/" class="hover:text-green-700 hover:underline">Home</a>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-800" fill="none" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-800" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M9 18l6-6-6-6"></path>
             </svg>
             <span>Tour Booking</span>
@@ -356,9 +483,7 @@ new #[Layout('components.layouts.app')] #[Title('Tour Booking')] class extends C
                         @elseif ($tour->offer_price && $tour->offer_price < $tour->regular_price)
                             <p class="text-sm md:text-base flex items-center gap-x-2">
                                 @php
-                                    $discountPercentage = round(
-                                        (($tour->regular_price - $tour->offer_price) / $tour->regular_price) * 100,
-                                    );
+                                    $discountPercentage = round((($tour->regular_price - $tour->offer_price) / $tour->regular_price) * 100);
                                 @endphp
                                 <del class="text-sm text-red-500">BDT {{ number_format($tour->regular_price) }}</del>
                             </p>
@@ -403,42 +528,38 @@ new #[Layout('components.layouts.app')] #[Title('Tour Booking')] class extends C
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 px-2 md:px-4">
                             <!-- Name -->
-                            <x-input class="custome-input-field" wire:model="name" label="Name" placeholder="Name"
-                                required readonly />
+                            <x-input class="custome-input-field" wire:model="name" label="Name" placeholder="Name" required readonly />
 
                             <!-- Email -->
-                            <x-input class="custome-input-field" type="email" wire:model="email" label="Email"
-                                placeholder="Email" required readonly />
+                            <x-input class="custome-input-field" type="email" wire:model="email" label="Email" placeholder="Email" required
+                                readonly />
 
                             <!-- Phone -->
-                            <x-input class="custome-input-field" wire:model="phone" label="Phone" placeholder="Phone"
-                                required />
+                            <x-input class="custome-input-field" wire:model="phone" label="Phone" placeholder="Phone" required />
 
                             <!-- Address -->
-                            <x-input class="custome-input-field" wire:model="address" label="Address"
-                                placeholder="Address" required />
+                            <x-input class="custome-input-field" wire:model="address" label="Address" placeholder="Address" required />
 
                             <!-- Country -->
-                            <x-choices class="custom-select-field" wire:model.live="country_id" :options="$countries"
-                                label="Country" placeholder="Select Country" single required />
+                            <x-choices class="custom-select-field" wire:model.live="country_id" :options="$countries" label="Country"
+                                placeholder="Select Country" single required search-function="countrySearch" searchable />
 
                             <!-- Division -->
-                            <x-choices class="custom-select-field" wire:model.live="division_id" :options="$divisions"
-                                label="Division" placeholder="Select Division" single required />
+                            <x-choices class="custom-select-field" wire:model.live="division_id" :options="$divisions" label="Division"
+                                placeholder="Select Division" single required search-function="divisionSearch" searchable />
 
                             <!-- District -->
-                            <x-choices class="custom-select-field" wire:model.live="district_id" :options="$districts"
-                                label="District" placeholder="Select District" single required />
+                            <x-choices class="custom-select-field" wire:model.live="district_id" :options="$districts" label="District"
+                                placeholder="Select District" search-function="districtSearch" searchable single required />
 
                             <!-- Zipcode -->
-                            <x-input class="custome-input-field" wire:model="zipcode" label="Zipcode"
-                                placeholder="Zipcode" />
+                            <x-input class="custome-input-field" wire:model="zipcode" label="Zipcode" placeholder="Zipcode" />
                         </div>
 
                         <!-- Additional Information -->
                         <div class="px-2 md:px-4">
-                            <x-textarea class="custome-input-field" wire:model="additional_information"
-                                label="Additional Information" placeholder="Additional Information" />
+                            <x-textarea class="custome-input-field" wire:model="additional_information" label="Additional Information"
+                                placeholder="Additional Information" />
                         </div>
                     </x-card>
                 </div>
@@ -453,15 +574,65 @@ new #[Layout('components.layouts.app')] #[Title('Tour Booking')] class extends C
                                 <h5 class="p-2 bg-light font-bold">Select a payment method</h5>
                                 @foreach ($gateways as $gateway)
                                     <div class="form-check mb-2">
-                                        <input class="form-check-input custom-radio-dot" type="radio"
-                                            id="gateway-{{ $gateway->id }}" value="{{ $gateway->id }}"
-                                            wire:model.live="payment_gateway_id">
-                                        <label class="form-check-label text-sm"
-                                            for="gateway-{{ $gateway->id }}">{{ $gateway->name }}
+                                        <input class="form-check-input custom-radio-dot" type="radio" id="gateway-{{ $gateway->id }}"
+                                            value="{{ $gateway->id }}" wire:model.live="payment_gateway_id">
+                                        <label class="form-check-label text-sm" for="gateway-{{ $gateway->id }}">{{ $gateway->name }}
                                         </label>
                                     </div>
                                 @endforeach
                             </div>
+
+                            <!-- Manual Payment Section -->
+                            @if ($payment_gateway_id == 6)
+                                <div class="mt-4 p-4 bg-gray-50 rounded-lg border">
+                                    <h6 class="font-semibold mb-3 text-gray-700">Manual Payment Details</h6>
+
+                                    <!-- Bank Selection -->
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Select Bank</label>
+                                        <select wire:model="selected_bank_id"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                                            <option value="">Choose a bank</option>
+                                            @foreach ($banks as $bank)
+                                                <option value="{{ $bank->id }}">
+                                                    {{ $bank->name }} - {{ $bank->ac_no }} ({{ $bank->country->name }})
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('selected_bank_id')
+                                            <span class="text-red-500 text-xs">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Payment Receipt Upload -->
+                                    <div class="mb-4">
+                                        <x-file label="Payment Receipt" wire:model="payment_receipt" required />
+                                        @error('payment_receipt')
+                                            <span class="text-red-500 text-xs">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Bank Details Display -->
+                                    @if ($selected_bank_id)
+                                        @php
+                                            $selectedBank = $banks->firstWhere('id', $selected_bank_id);
+                                        @endphp
+                                        @if ($selectedBank)
+                                            <div class="mt-3 p-3 bg-white rounded border">
+                                                <h6 class="font-semibold text-sm mb-2">Bank Details:</h6>
+                                                <div class="text-xs space-y-1">
+                                                    <p><strong>Bank:</strong> {{ $selectedBank->name }}</p>
+                                                    <p><strong>Account No:</strong> {{ $selectedBank->ac_no }}</p>
+                                                    <p><strong>Branch:</strong> {{ $selectedBank->branch ?? 'N/A' }}</p>
+                                                    <p><strong>Swift Code:</strong> {{ $selectedBank->swift_code }}</p>
+                                                    <p><strong>Routing No:</strong> {{ $selectedBank->routing_no }}</p>
+                                                    <p><strong>Address:</strong> {{ $selectedBank->address }}</p>
+                                                </div>
+                                            </div>
+                                        @endif
+                                    @endif
+                                </div>
+                            @endif
                             <div class="flex flex-col sm:flex-row gap-x-2 gap-y-2 items-stretch">
                                 <!-- Input Field -->
                                 <div class="flex-1 w-full">
@@ -500,8 +671,8 @@ new #[Layout('components.layouts.app')] #[Title('Tour Booking')] class extends C
                             </div>
                             <div x-data="{ accepted: false }">
                                 <label class="flex items-center gap-x-1 text-sm whitespace-nowrap mt-2 cursor-pointer">
-                                    <input type="checkbox" name="termsCondition" id="flexCheckDefaultf1"
-                                        x-model="accepted" class="custom-checkbox">
+                                    <input type="checkbox" name="termsCondition" id="flexCheckDefaultf1" x-model="accepted"
+                                        class="custom-checkbox">
                                     <span>I read and accept all</span>
                                     <a href="#" class="text-green-500 hover:underline" @click.prevent>Terms and
                                         conditions</a>

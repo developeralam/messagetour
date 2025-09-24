@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Bank;
 use App\Models\Car;
 use App\Models\User;
 use App\Enum\CarType;
@@ -16,9 +17,13 @@ use App\Enum\OrderStatus;
 use App\Enum\ProductType;
 use App\Models\CarBooking;
 use App\Models\Commission;
+use App\Enum\CountryStatus;
 use App\Enum\PaymentStatus;
 use Livewire\Volt\Component;
 use App\Jobs\OrderInvoiceJob;
+use App\Jobs\SendCustomerMailJob;
+use App\Jobs\SendAgentMailJob;
+use Illuminate\Support\Facades\Http;
 use App\Enum\CommissionStatus;
 use App\Models\PaymentGateway;
 use Illuminate\Support\Carbon;
@@ -26,12 +31,13 @@ use Livewire\Attributes\Title;
 use Livewire\Attributes\Layout;
 use Illuminate\Support\Facades\DB;
 use App\Notifications\OrderNotification;
+use App\Traits\InteractsWithImageUploads;
 use App\Services\SSLCOMMERZPaymentService;
 use App\Services\BkashPaymentGatewayService;
 use Illuminate\Support\Facades\Notification;
 
 new #[Layout('components.layouts.app')] #[Title('Car Booking')] class extends Component {
-    use Toast;
+    use Toast, InteractsWithImageUploads;
 
     public $car;
     public $countries = [];
@@ -58,6 +64,11 @@ new #[Layout('components.layouts.app')] #[Title('Car Booking')] class extends Co
     public $return_datetime;
     public $rental_type;
     public $vehicle_type;
+    public $banks = [];
+    public $selected_bank_id;
+    public $payment_receipt;
+    public $divisions = [];
+    public $districts = [];
 
     public function mount($slug)
     {
@@ -120,13 +131,21 @@ new #[Layout('components.layouts.app')] #[Title('Car Booking')] class extends Co
 
         // Additional code for loading countries (if needed)
         $this->countries = Country::orderBy('name')->get();
+        $this->banks = Bank::with('country')->orderBy('name', 'asc')->get();
+        $this->divisions = Division::when($this->country_id, function ($q) {
+            $q->where('country_id', intval($this->country_id));
+        })->get();
+        $this->districts = District::when($this->division_id, function ($q) {
+            $q->where('division_id', intval($this->division_id));
+        })->get();
 
         // Get active payment gateways, excluding 'Wallet' for non-agents
         $query = PaymentGateway::where('is_active', 1);
         if ($user->type !== UserType::Agent) {
             $query->where('name', '!=', 'Wallet');
+            $query->where('name', '!=', 'Manual');
         }
-        $this->gateways = $query->get();
+        $this->gateways = $query->where('id', '!=', 4)->get();
 
         // Apply agent discount if the user is an approved agent with valid commission settings
         if ($user->type == UserType::Agent && $user->agent && $user->agent->status == AgentStatus::Approve && $user->agent->validity && Carbon::parse($user->agent->validity)->isFuture()) {
@@ -153,6 +172,30 @@ new #[Layout('components.layouts.app')] #[Title('Car Booking')] class extends Co
 
         // Set total_amount with the discounted subtotal
         $this->total_amount = $this->subtotal;
+    }
+
+    public function countrySearch(string $search = '')
+    {
+        $searchTerm = '%' . $search . '%';
+
+        $citizen = Country::where('status', CountryStatus::Active)->where('name', 'like', $searchTerm)->limit(5)->get();
+
+        $this->countries = $citizen;
+    }
+    public function divisionSearch(string $search = '')
+    {
+        $searchTerm = '%' . $search . '%';
+        $divisions = Division::where('country_id', $this->country_id)->where('name', 'like', $searchTerm)->limit(5)->get();
+
+        $this->divisions = $divisions;
+    }
+
+    public function districtSearch(string $search = '')
+    {
+        $searchTerm = '%' . $search . '%';
+        $districts = District::where('division_id', $this->division_id)->where('name', 'like', $searchTerm)->limit(5)->get();
+
+        $this->districts = $districts;
     }
 
     /**
@@ -203,6 +246,8 @@ new #[Layout('components.layouts.app')] #[Title('Car Booking')] class extends Co
     {
         match ($property) {
             'payment_gateway_id' => $this->updatePaymentGateway(),
+            'country_id' => $this->updateDivisions(),
+            'division_id' => $this->updateDistricts(),
             default => null,
         };
     }
@@ -211,6 +256,23 @@ new #[Layout('components.layouts.app')] #[Title('Car Booking')] class extends Co
     {
         $this->delivery_charge = PaymentGateway::find($this->payment_gateway_id)?->charge ?? 0;
         $this->updateTotalAmount();
+    }
+
+    private function updateDivisions()
+    {
+        $this->divisions = Division::when($this->country_id, function ($q) {
+            $q->where('country_id', intval($this->country_id));
+        })->get();
+
+        $this->division_id = null;
+        $this->districts = collect();
+    }
+
+    private function updateDistricts()
+    {
+        $this->districts = District::when($this->division_id, function ($q) {
+            $q->where('division_id', intval($this->division_id));
+        })->get();
     }
 
     private function updateTotalAmount()
@@ -252,7 +314,7 @@ new #[Layout('components.layouts.app')] #[Title('Car Booking')] class extends Co
                 'coupon_amount' => $this->coupon_amount, // Apply coupon discount
                 'subtotal' => $this->subtotal,
                 'delivery_charge' => $this->delivery_charge,
-                'tran_id' => uniqid(), // Generate a unique transaction ID
+                'tran_id' => uniqid('flyvaly_'), // Generate a unique transaction ID
                 'total_amount' => $this->total_amount, // Total amount to be paid
                 'status' => OrderStatus::Pending, // Initial order status
                 'payment_gateway_id' => $this->payment_gateway_id, // Payment gateway used
@@ -298,9 +360,21 @@ new #[Layout('components.layouts.app')] #[Title('Car Booking')] class extends Co
             $order->save(); // Save the updated order
 
             // Dispatch a job to send the invoice to the user
+            // Send invoice email to customer
             OrderInvoiceJob::dispatch(auth()->user()->email, $order);
 
-            // Send notifications to admins and the car creator
+            // Send booking confirmation email to customer
+            $customerSubject = 'Car Booking Confirmation - ' . $this->car->title;
+            $customerEmailBody = 'Dear ' . auth()->user()->name . ',<br><br>' . 'Thank you for booking the car: <strong>' . $this->car->title . '</strong><br><br>' . 'Your booking ID: <strong>' . $order->tran_id . '</strong><br>' . 'Pickup Date: <strong>' . $this->pickup_datetime . '</strong><br>' . 'Return Date: <strong>' . $this->return_datetime . '</strong><br>' . 'Total Amount: <strong>৳' . number_format($order->total_amount, 2) . '</strong><br><br>' . 'We will contact you soon with further details.<br><br>' . 'Best regards,<br>FlyValy Team';
+
+            SendCustomerMailJob::dispatch(
+                auth()->user()->email,
+                [], // No BCC for customer email
+                $customerSubject,
+                $customerEmailBody,
+            );
+
+            // Send notifications and emails
             $admins = User::where('type', UserType::Admin)->get();
             $carCreator = User::find($this->car->created_by); // Get the creator of the car
             $message = $this->car->title . ' booked by ' . auth()->user()->name;
@@ -308,9 +382,20 @@ new #[Layout('components.layouts.app')] #[Title('Car Booking')] class extends Co
             // Notify all admins about the new booking
             Notification::send($admins, new OrderNotification($order, $message));
 
-            // Notify the car creator if they are not an admin
+            // Send email to car creator (partner) if they exist and are NOT an admin
             if ($carCreator && $carCreator->type !== UserType::Admin) {
                 $carCreator->notify(new OrderNotification($order, $message));
+
+                // Send email to car creator
+                $partnerSubject = 'New Car Booking - ' . $this->car->title;
+                $partnerEmailBody = 'Dear ' . $carCreator->name . ',<br><br>' . 'Great news! Your car <strong>' . $this->car->title . '</strong> has been booked by <strong>' . auth()->user()->name . '</strong>.<br><br>' . 'Booking Details:<br>' . 'Order ID: <strong>' . $order->tran_id . '</strong><br>' . 'Customer: <strong>' . auth()->user()->name . '</strong><br>' . 'Email: <strong>' . auth()->user()->email . '</strong><br>' . 'Phone: <strong>' . $order->phone . '</strong><br>' . 'Pickup Date: <strong>' . $this->pickup_datetime . '</strong><br>' . 'Return Date: <strong>' . $this->return_datetime . '</strong><br>' . 'Total Amount: <strong>৳' . number_format($order->total_amount, 2) . '</strong><br><br>' . 'Please contact the customer for further arrangements.<br><br>' . 'Best regards,<br>FlyValy Team';
+
+                SendAgentMailJob::dispatch(
+                    $carCreator->email,
+                    [], // No BCC for partner email
+                    $partnerSubject,
+                    $partnerEmailBody,
+                );
             }
 
             // Commit the transaction after successful operations
@@ -367,6 +452,41 @@ new #[Layout('components.layouts.app')] #[Title('Car Booking')] class extends Co
                 $this->redirectRoute('order.invoice', ['order' => $order->id]);
             }
 
+            if ($order->payment_gateway_id == 6) {
+                // Handle manual payment
+                // Store payment receipt and bank information
+
+                $storedThumbnailPath = null;
+                if ($this->payment_receipt) {
+                    $apiKey = env('IMGBB_API_KEY') ?? '30624d49f53abfcec50351257ad0ce43';
+                    $uploadUrl = env('IMGBB_UPLOAD_URL') ?? 'https://api.imgbb.com/1/upload';
+
+                    // Convert Livewire file to base64
+                    $imageData = base64_encode(file_get_contents($this->payment_receipt->path()));
+
+                    $response = Http::asForm()->post($uploadUrl, [
+                        'key' => $apiKey,
+                        'image' => $imageData,
+                    ]);
+
+                    $result = $response->json();
+
+                    if (isset($result['data']['url'])) {
+                        // ✅ Replace file path with actual ImgBB URL
+                        $storedThumbnailPath = $result['data']['url'];
+                    } else {
+                        throw new \Exception('ImgBB upload failed for payment receipt: ' . json_encode($result));
+                    }
+                }
+                $order->payment_receipt = $storedThumbnailPath;
+
+                $order->selected_bank_id = $this->selected_bank_id;
+                $order->save();
+
+                $this->success('Car booking submitted successfully! Your payment will be verified manually.');
+                $this->redirectRoute('order.invoice', ['order' => $order->id]);
+            }
+
             // Success message
             $this->success('Car Booking Successfully');
             $this->resetForm(); // Reset the form after booking
@@ -389,26 +509,22 @@ new #[Layout('components.layouts.app')] #[Title('Car Booking')] class extends Co
     public function with(): array
     {
         return [
-            'divisions' => Division::when($this->country_id, function ($q) {
-                $q->where('country_id', intval($this->country_id));
-            })->get(),
-            'districts' => District::when($this->division_id, function ($q) {
-                $q->where('division_id', intval($this->division_id));
-            })->get(),
+            'divisions' => $this->divisions,
+            'districts' => $this->districts,
         ];
     }
 }; ?>
 
 <div class="bg-gray-100 px-5 xl:px-0">
     @section('booking')
-    <div class="flex items-center space-x-1 justify-center text-white mt-10 font-extrabold text-xl">
-        <a href="/" class="hover:text-green-700 hover:underline">Home</a>
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-800" fill="none" stroke="currentColor"
-            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M9 18l6-6-6-6"></path>
-        </svg>
-        <span>Car Booking</span>
-    </div>
+        <div class="flex items-center space-x-1 justify-center text-white mt-10 font-extrabold text-xl">
+            <a href="/" class="hover:text-green-700 hover:underline">Home</a>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-800" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M9 18l6-6-6-6"></path>
+            </svg>
+            <span>Car Booking</span>
+        </div>
     @endsection
 
     <section class="pt-6">
@@ -418,8 +534,7 @@ new #[Layout('components.layouts.app')] #[Title('Car Booking')] class extends Co
                 <!-- Car Image -->
                 <div class="w-full md:w-1/2">
                     <div class="h-48 md:h-full rounded-md overflow-hidden shadow-sm">
-                        <img class="lg:object-cover md:object-center w-full h-full" src="{{ $car->image_link }}"
-                            alt="{{ $car->title }}" />
+                        <img class="lg:object-cover md:object-center w-full h-full" src="{{ $car->image_link }}" alt="{{ $car->title }}" />
                     </div>
                 </div>
 
@@ -434,8 +549,7 @@ new #[Layout('components.layouts.app')] #[Title('Car Booking')] class extends Co
                     </div>
 
                     <!-- Basic Info -->
-                    <div
-                        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-y-2 gap-x-4 text-sm text-gray-700 mb-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-y-2 gap-x-4 text-sm text-gray-700 mb-4">
                         <p><span class="font-medium">Seating Capacity:</span> {{ $car->seating_capacity }} persons</p>
                         <p><span class="font-medium">Car CC:</span> {{ $car->car_cc }}</p>
                         <p><span class="font-medium">Type:</span> {{ $car->car_type->label() }}</p>
@@ -447,27 +561,27 @@ new #[Layout('components.layouts.app')] #[Title('Car Booking')] class extends Co
                     <!-- Rent Info -->
                     <div class="mb-3 text-sm md:text-base text-gray-800">
                         @if ($car->only_body == 1)
-                        <p class="font-medium">
-                            <span class="text-[#f73] font-bold">Hour Rent:</span>
-                            BDT {{ $car->hour_rent }}/ <small>Per Hour</small>
-                        </p>
+                            <p class="font-medium">
+                                <span class="text-[#f73] font-bold">Hour Rent:</span>
+                                BDT {{ $car->hour_rent }}/ <small>Per Hour</small>
+                            </p>
                         @elseif ($car->only_body == 0)
-                        <p class="font-medium">
-                            <span class="text-[#f73] font-bold">Rent:</span>
-                            BDT {{ $car->rent }}/ <small>Per Day</small>
-                        </p>
+                            <p class="font-medium">
+                                <span class="text-[#f73] font-bold">Rent:</span>
+                                BDT {{ $car->rent }}/ <small>Per Day</small>
+                            </p>
                         @endif
 
                         @if ($car->extra_time_cost_by_hour && $car->only_body == 1)
-                        <p class="text-xs text-gray-600 mt-1">
-                            Extra Time Cost Hour: {{ $car->extra_time_cost_by_hour }}
-                        </p>
+                            <p class="text-xs text-gray-600 mt-1">
+                                Extra Time Cost Hour: {{ $car->extra_time_cost_by_hour }}
+                            </p>
                         @endif
 
                         @if ($car->extra_time_cost && $car->only_body == 0)
-                        <p class="text-xs text-gray-600">
-                            Extra Time Cost: BDT {{ $car->extra_time_cost }}
-                        </p>
+                            <p class="text-xs text-gray-600">
+                                Extra Time Cost: BDT {{ $car->extra_time_cost }}
+                            </p>
                         @endif
                     </div>
 
@@ -495,42 +609,38 @@ new #[Layout('components.layouts.app')] #[Title('Car Booking')] class extends Co
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 px-2 md:px-4">
                             <!-- Name -->
-                            <x-input class="custome-input-field" wire:model="name" label="Name" placeholder="Name"
-                                required readonly />
+                            <x-input class="custome-input-field" wire:model="name" label="Name" placeholder="Name" required readonly />
 
                             <!-- Email -->
-                            <x-input class="custome-input-field" type="email" wire:model="email" label="Email"
-                                placeholder="Email" required readonly />
+                            <x-input class="custome-input-field" type="email" wire:model="email" label="Email" placeholder="Email" required
+                                readonly />
 
                             <!-- Phone -->
-                            <x-input class="custome-input-field" wire:model="phone" label="Phone" placeholder="Phone"
-                                required />
+                            <x-input class="custome-input-field" wire:model="phone" label="Phone" placeholder="Phone" required />
 
                             <!-- Address -->
-                            <x-input class="custome-input-field" wire:model="address" label="Address"
-                                placeholder="Address" required />
+                            <x-input class="custome-input-field" wire:model="address" label="Address" placeholder="Address" required />
 
                             <!-- Country -->
-                            <x-choices class="custom-select-field" wire:model.live="country_id" :options="$countries"
-                                label="Country" placeholder="Select Country" single required />
+                            <x-choices class="custom-select-field" wire:model.live="country_id" :options="$countries" label="Country"
+                                placeholder="Select Country" single required />
 
                             <!-- Division -->
-                            <x-choices class="custom-select-field" wire:model.live="division_id" :options="$divisions"
-                                label="Division" placeholder="Select Division" single required />
+                            <x-choices class="custom-select-field" wire:model.live="division_id" :options="$divisions" label="Division"
+                                placeholder="Select Division" single required />
 
                             <!-- District -->
-                            <x-choices class="custom-select-field" wire:model.live="district_id" :options="$districts"
-                                label="District" placeholder="Select District" single required />
+                            <x-choices class="custom-select-field" wire:model.live="district_id" :options="$districts" label="District"
+                                placeholder="Select District" single required />
 
                             <!-- Zipcode -->
-                            <x-input class="custome-input-field" wire:model="zipcode" label="Zipcode"
-                                placeholder="Zipcode" />
+                            <x-input class="custome-input-field" wire:model="zipcode" label="Zipcode" placeholder="Zipcode" />
                         </div>
 
                         <!-- Additional Information -->
                         <div class="px-2 md:px-4">
-                            <x-textarea class="custome-input-field" wire:model="additional_information"
-                                label="Additional Information" placeholder="Additional Information" />
+                            <x-textarea class="custome-input-field" wire:model="additional_information" label="Additional Information"
+                                placeholder="Additional Information" />
                         </div>
                     </x-card>
                 </div>
@@ -544,16 +654,66 @@ new #[Layout('components.layouts.app')] #[Title('Car Booking')] class extends Co
                             <div class="payment_method">
                                 <h5 class="p-2 bg-light font-bold">Select a payment method</h5>
                                 @foreach ($gateways as $gateway)
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input custom-radio-dot" type="radio"
-                                        id="gateway-{{ $gateway->id }}" value="{{ $gateway->id }}"
-                                        wire:model.live="payment_gateway_id">
-                                    <label class="form-check-label text-sm"
-                                        for="gateway-{{ $gateway->id }}">{{ $gateway->name }}
-                                    </label>
-                                </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input custom-radio-dot" type="radio" id="gateway-{{ $gateway->id }}"
+                                            value="{{ $gateway->id }}" wire:model.live="payment_gateway_id">
+                                        <label class="form-check-label text-sm" for="gateway-{{ $gateway->id }}">{{ $gateway->name }}
+                                        </label>
+                                    </div>
                                 @endforeach
                             </div>
+
+                            <!-- Manual Payment Section -->
+                            @if ($payment_gateway_id == 6)
+                                <div class="mt-4 p-4 bg-gray-50 rounded-lg border">
+                                    <h6 class="font-semibold mb-3 text-gray-700">Manual Payment Details</h6>
+
+                                    <!-- Bank Selection -->
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Select Bank</label>
+                                        <select wire:model="selected_bank_id"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                                            <option value="">Choose a bank</option>
+                                            @foreach ($banks as $bank)
+                                                <option value="{{ $bank->id }}">
+                                                    {{ $bank->name }} - {{ $bank->ac_no }} ({{ $bank->country->name }})
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('selected_bank_id')
+                                            <span class="text-red-500 text-xs">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Payment Receipt Upload -->
+                                    <div class="mb-4">
+                                        <x-file label="Payment Receipt" wire:model="payment_receipt" required />
+                                        @error('payment_receipt')
+                                            <span class="text-red-500 text-xs">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Bank Details Display -->
+                                    @if ($selected_bank_id)
+                                        @php
+                                            $selectedBank = $banks->firstWhere('id', $selected_bank_id);
+                                        @endphp
+                                        @if ($selectedBank)
+                                            <div class="mt-3 p-3 bg-white rounded border">
+                                                <h6 class="font-semibold text-sm mb-2">Bank Details:</h6>
+                                                <div class="text-xs space-y-1">
+                                                    <p><strong>Bank:</strong> {{ $selectedBank->name }}</p>
+                                                    <p><strong>Account No:</strong> {{ $selectedBank->ac_no }}</p>
+                                                    <p><strong>Branch:</strong> {{ $selectedBank->branch ?? 'N/A' }}</p>
+                                                    <p><strong>Swift Code:</strong> {{ $selectedBank->swift_code }}</p>
+                                                    <p><strong>Routing No:</strong> {{ $selectedBank->routing_no }}</p>
+                                                    <p><strong>Address:</strong> {{ $selectedBank->address }}</p>
+                                                </div>
+                                            </div>
+                                        @endif
+                                    @endif
+                                </div>
+                            @endif
                             <div class="flex flex-col sm:flex-row gap-x-2 gap-y-2 items-stretch">
                                 <!-- Input Field -->
                                 <div class="flex-1 w-full">
@@ -591,8 +751,8 @@ new #[Layout('components.layouts.app')] #[Title('Car Booking')] class extends Co
                             </div>
                             <div x-data="{ accepted: false }">
                                 <label class="flex items-center gap-x-1 text-sm whitespace-nowrap mt-2 cursor-pointer">
-                                    <input type="checkbox" name="termsCondition" id="flexCheckDefaultf1"
-                                        x-model="accepted" class="custom-checkbox">
+                                    <input type="checkbox" name="termsCondition" id="flexCheckDefaultf1" x-model="accepted"
+                                        class="custom-checkbox">
                                     <span>I read and accept all</span>
                                     <a href="#" class="text-green-500 hover:underline" @click.prevent>Terms and
                                         conditions</a>
