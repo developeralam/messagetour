@@ -121,6 +121,23 @@ new #[Layout('components.layouts.admin')] #[Title('Districts')] class extends Co
             ->paginate(10);
     }
 
+    public function countrySearch(string $search = '')
+    {
+        $searchTerm = '%' . $search . '%';
+
+        $citizen = Country::where('name', 'like', $searchTerm)->get();
+
+        $this->countries = $citizen;
+    }
+
+    public function divisionSearch(string $search = '')
+    {
+        $searchTerm = '%' . $search . '%';
+        $divisions = Division::where('country_id', $this->country_id)->where('name', 'like', $searchTerm)->limit(5)->get();
+
+        $this->divisions = $divisions;
+    }
+
     public function with(): array
     {
         return [
@@ -145,19 +162,16 @@ new #[Layout('components.layouts.admin')] #[Title('Districts')] class extends Co
             @endscope
             @scope('cell_status', $district)
                 @if ($district->status == \App\Enum\DistrictStatus::Active)
-                    <x-badge value="{{ $district->status->label() }}"
-                        class="bg-green-100 text-green-700 p-3 text-xs font-semibold" />
+                    <x-badge value="{{ $district->status->label() }}" class="bg-green-100 text-green-700 p-3 text-xs font-semibold" />
                 @elseif ($district->status == \App\Enum\DistrictStatus::Inactive)
-                    <x-badge value="{{ $district->status->label() }}"
-                        class="bg-red-100 text-red-700 p-3 text-xs font-semibold" />
+                    <x-badge value="{{ $district->status->label() }}" class="bg-red-100 text-red-700 p-3 text-xs font-semibold" />
                 @endif
             @endscope
             @scope('actions', $district)
                 <div class="flex items-center gap-1">
-                    <x-button icon="o-trash" wire:click="delete({{ $district['id'] }})" wire:confirm="Are you sure?"
-                        class="btn-error btn-action" spinner="delete({{ $district['id'] }})" />
-                    <x-button icon="s-pencil-square" wire:click="edit({{ $district['id'] }})"
-                        class="btn-neutral btn-action" />
+                    <x-button icon="o-trash" wire:click="delete({{ $district['id'] }})" wire:confirm="Are you sure?" class="btn-error btn-action"
+                        spinner="delete({{ $district['id'] }})" />
+                    <x-button icon="s-pencil-square" wire:click="edit({{ $district['id'] }})" class="btn-neutral btn-action" />
                 </div>
             @endscope
         </x-table>
@@ -165,10 +179,10 @@ new #[Layout('components.layouts.admin')] #[Title('Districts')] class extends Co
 
     <x-modal wire:model="createModal" title="Add New District" separator>
         <x-form wire:submit="storeDistrict">
-            <x-choices label="Country" :options="$countries" single wire:model.live="country_id"
-                placeholder="Select Country" required />
-            <x-choices label="Division" :options="$divisions" single wire:model="division_id" placeholder="Select Division"
-                required />
+            <x-choices wire:model.live="country_id" :options="$countries" label="Country" placeholder="Select Country" single required
+                search-function="countrySearch" searchable />
+            <x-choices wire:model.live="division_id" :options="$divisions" label="Division" placeholder="Select Division" single required
+                search-function="divisionSearch" searchable />
             <x-input label="District Name" wire:model="name" placeholder="District Name" required />
             <x-slot:actions>
                 <x-button label="Cancel" @click="$wire.createModal = false" class="btn-sm" />
@@ -179,10 +193,10 @@ new #[Layout('components.layouts.admin')] #[Title('Districts')] class extends Co
 
     <x-modal wire:model="editModal" title="Update {{ $district->name ?? '' }}" separator>
         <x-form wire:submit="updateDistrict">
-            <x-choices label="Country" :options="$countries" single wire:model.live="country_id"
-                placeholder="Select Country" required />
-            <x-choices label="Division" :options="$divisions" single wire:model="division_id" placeholder="Select Division"
-                required />
+            <x-choices wire:model.live="country_id" :options="$countries" label="Country" placeholder="Select Country" single required
+                search-function="countrySearch" searchable />
+            <x-choices wire:model.live="division_id" :options="$divisions" label="Division" placeholder="Select Division" single required
+                search-function="divisionSearch" searchable />
             <x-input label="District Name" wire:model="name" placeholder="District Name" required />
             <x-slot:actions>
                 <x-button label="Cancel" @click="$wire.editModal = false" class="btn-sm" />

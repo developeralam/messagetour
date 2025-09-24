@@ -99,6 +99,15 @@ new #[Layout('components.layouts.admin')] #[Title('Division')] class extends Com
             ->paginate(10);
     }
 
+    public function countrySearch(string $search = '')
+    {
+        $searchTerm = '%' . $search . '%';
+
+        $citizen = Country::where('name', 'like', $searchTerm)->get();
+
+        $this->countries = $citizen;
+    }
+
     public function updated($property)
     {
         if (!is_array($property) && $property != '') {
@@ -127,19 +136,16 @@ new #[Layout('components.layouts.admin')] #[Title('Division')] class extends Com
             @endscope
             @scope('cell_status', $division)
                 @if ($division->status == \App\Enum\DivisionStatus::Active)
-                    <x-badge value="{{ $division->status->label() }}"
-                        class="bg-green-100 text-green-700 p-3 text-xs font-semibold" />
+                    <x-badge value="{{ $division->status->label() }}" class="bg-green-100 text-green-700 p-3 text-xs font-semibold" />
                 @elseif ($division->status == \App\Enum\DivisionStatus::Inactive)
-                    <x-badge value="{{ $division->status->label() }}"
-                        class="bg-red-100 text-red-700 p-3 text-xs font-semibold" />
+                    <x-badge value="{{ $division->status->label() }}" class="bg-red-100 text-red-700 p-3 text-xs font-semibold" />
                 @endif
             @endscope
             @scope('actions', $division)
                 <div class="flex items-center gap-1">
-                    <x-button icon="o-trash" wire:click="delete({{ $division['id'] }})" wire:confirm="Are you sure?"
-                        class="btn-error btn-action" spinner="delete({{ $division['id'] }})" />
-                    <x-button icon="s-pencil-square" wire:click="edit({{ $division['id'] }})"
-                        class="btn-neutral btn-action" />
+                    <x-button icon="o-trash" wire:click="delete({{ $division['id'] }})" wire:confirm="Are you sure?" class="btn-error btn-action"
+                        spinner="delete({{ $division['id'] }})" />
+                    <x-button icon="s-pencil-square" wire:click="edit({{ $division['id'] }})" class="btn-neutral btn-action" />
                 </div>
             @endscope
         </x-table>
@@ -147,8 +153,8 @@ new #[Layout('components.layouts.admin')] #[Title('Division')] class extends Com
 
     <x-modal wire:model="createModal" title="Add New Division" separator>
         <x-form wire:submit="storeDivision">
-            <x-choices label="Country" :options="$countries" single wire:model="country_id" placeholder="Select Country"
-                required />
+            <x-choices wire:model.live="country_id" :options="$countries" label="Country" placeholder="Select Country" single required
+                search-function="countrySearch" searchable />
             <x-input label="Division Name" wire:model="name" placeholder="Division Name" required />
             <x-slot:actions>
                 <x-button label="Cancel" @click="$wire.createModal = false" class="btn-sm" />
@@ -158,9 +164,8 @@ new #[Layout('components.layouts.admin')] #[Title('Division')] class extends Com
     </x-modal>
     <x-modal wire:model="editModal" title="Update {{ $division->name ?? '' }}" separator>
         <x-form wire:submit="updateDivision">
-            <x-choices label="Country" :options="$countries" single wire:model="country_id" placeholder="Select Country"
-                required />
-
+            <x-choices wire:model.live="country_id" :options="$countries" label="Country" placeholder="Select Country" single required
+                search-function="countrySearch" searchable />
             <x-input label="Division Name" wire:model="name" placeholder="Division Name" required />
 
             <x-slot:actions>
