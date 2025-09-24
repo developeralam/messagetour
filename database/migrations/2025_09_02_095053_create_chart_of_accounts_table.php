@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('name');
             $table->enum('type', ['asset', 'liability', 'equity', 'revenue', 'expense'])->index();
             $table->decimal('current_balance', 15, 2)->default(0);
+            $table->decimal('opening_balance', 15, 2)->default(0);
             $table->softDeletes();
             $table->timestamps();
         });

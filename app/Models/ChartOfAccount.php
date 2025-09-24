@@ -10,7 +10,7 @@ class ChartOfAccount extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['parent_id', 'code', 'name', 'type', 'current_balance'];
+    protected $fillable = ['parent_id', 'code', 'name', 'type', 'current_balance', 'opening_balance'];
 
     public function parent()
     {

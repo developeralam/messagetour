@@ -1,15 +1,16 @@
 <?php
 
-use App\Enum\AccountType;
-use App\Models\ChartOfAccount;
-use Livewire\Attributes\Computed;
-use Livewire\Attributes\Layout;
-use Livewire\Attributes\Rule;
-use Livewire\Attributes\Title;
-use Livewire\Volt\Component;
-use Livewire\WithFileUploads;
-use Livewire\WithPagination;
 use Mary\Traits\Toast;
+use App\Enum\AccountType;
+use Livewire\Volt\Component;
+use Livewire\WithPagination;
+use Livewire\Attributes\Rule;
+use Livewire\WithFileUploads;
+use App\Models\ChartOfAccount;
+use Livewire\Attributes\Title;
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Computed;
+use App\Services\TransactionService;
 
 new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class extends Component {
     use Toast;
@@ -36,6 +37,9 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class ex
 
     #[Rule('required')]
     public $type;
+
+    #[Rule('required')]
+    public $opening_balance;
 
     public $from_date;
 
@@ -65,12 +69,17 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class ex
     {
         $this->validate();
         try {
-            ChartOfAccount::create([
+            $account = ChartOfAccount::create([
                 'name' => $this->name,
                 'parent_id' => $this->parent_id,
                 'type' => $this->type,
+                'opening_balance' => $this->opening_balance,
             ]);
-            $this->reset(['name', 'type', 'parent_id']);
+
+            // Record opening balance transaction with proper debit/credit logic
+            $this->recordOpeningBalanceTransaction($account, $this->opening_balance);
+
+            $this->reset(['name', 'type', 'parent_id', 'opening_balance']);
             $this->success('Chart Of Account Added Successfully');
             $this->createModal = false;
         } catch (\Throwable $th) {
@@ -81,11 +90,12 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class ex
 
     public function edit(ChartOfAccount $account)
     {
-        $this->reset(['name', 'type', 'parent_id']);
+        $this->reset(['name', 'type', 'parent_id', 'opening_balance']);
         $this->account = $account;
         $this->name = $account->name;
         $this->parent_id = $account->parent_id;
         $this->type = $account->type;
+        $this->opening_balance = $account->opening_balance;
         $this->editModal = true;
     }
 
@@ -93,12 +103,22 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class ex
     {
         $this->validate();
         try {
+            $oldOpeningBalance = $this->account->opening_balance;
+
             $this->account->update([
                 'name' => $this->name,
                 'parent_id' => $this->parent_id,
                 'type' => $this->type,
+                'opening_balance' => $this->opening_balance,
             ]);
-            $this->reset(['name', 'type', 'parent_id']);
+
+            // If opening balance changed, record the adjustment transaction
+            if ($oldOpeningBalance != $this->opening_balance) {
+                $difference = $this->opening_balance - $oldOpeningBalance;
+                $this->recordOpeningBalanceTransaction($this->account, $difference, 'Opening Balance Adjustment');
+            }
+
+            $this->reset(['name', 'type', 'parent_id', 'opening_balance']);
             $this->success('Chart Of Account Updated Successfully');
             $this->editModal = false;
         } catch (\Throwable $th) {
@@ -116,9 +136,70 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class ex
         }
     }
 
+    /**
+     * Record opening balance transaction with proper debit/credit logic
+     * Following accounting equation: Assets = Liabilities + Equity
+     */
+    private function recordOpeningBalanceTransaction(ChartOfAccount $account, $amount, $description = 'Opening Balance')
+    {
+        // Get or create the equity account for opening balance contra-entry
+        $equityAccount = ChartOfAccount::where('type', 'equity')->whereNull('parent_id')->first();
+
+        if (!$equityAccount) {
+            // Create a default equity account if it doesn't exist
+            ChartOfAccount::$skipCodeGeneration = true;
+            $equityAccount = ChartOfAccount::create([
+                'code' => 300,
+                'name' => 'Owner\'s Equity',
+                'type' => 'equity',
+                'opening_balance' => 0,
+                'current_balance' => 0,
+            ]);
+            ChartOfAccount::$skipCodeGeneration = false;
+        }
+
+        // Determine debit/credit based on account type and amount
+        if (in_array($account->type, ['asset', 'expense'])) {
+            // Assets and Expenses are DEBIT accounts
+            // Positive amount = DEBIT the account, CREDIT equity
+            // Negative amount = CREDIT the account, DEBIT equity
+            if ($amount >= 0) {
+                $debitAccountId = $account->id;
+                $creditAccountId = $equityAccount->id;
+            } else {
+                $debitAccountId = $equityAccount->id;
+                $creditAccountId = $account->id;
+                $amount = abs($amount); // Make amount positive for transaction
+            }
+        } else {
+            // Liabilities, Equity, Revenue are CREDIT accounts
+            // Positive amount = CREDIT the account, DEBIT equity
+            // Negative amount = DEBIT the account, CREDIT equity
+            if ($amount >= 0) {
+                $debitAccountId = $equityAccount->id;
+                $creditAccountId = $account->id;
+            } else {
+                $debitAccountId = $account->id;
+                $creditAccountId = $equityAccount->id;
+                $amount = abs($amount); // Make amount positive for transaction
+            }
+        }
+
+        // Record the transaction using the existing TransactionService
+        TransactionService::recordTransaction([
+            'source_type' => ChartOfAccount::class,
+            'source_id' => $account->id,
+            'amount' => $amount,
+            'debit_account_id' => $debitAccountId,
+            'credit_account_id' => $creditAccountId,
+            'date' => now(),
+            'description' => $description,
+        ]);
+    }
+
     public function headers(): array
     {
-        return [['key' => 'id', 'label' => '#'], ['key' => 'code', 'label' => 'Code', 'sortable' => false], ['key' => 'parent.name', 'label' => 'Category', 'sortable' => false], ['key' => 'name', 'label' => 'Name'], ['key' => 'type', 'label' => 'Type'], ['key' => 'current_balance', 'label' => 'Current Balance', 'sortable' => false]];
+        return [['key' => 'id', 'label' => '#'], ['key' => 'code', 'label' => 'Account Code', 'sortable' => false], ['key' => 'parent.name', 'label' => 'Account Category', 'sortable' => false], ['key' => 'name', 'label' => 'Account Name'], ['key' => 'type', 'label' => 'Account Type'], ['key' => 'opening_balance', 'label' => 'Opening Balance', 'sortable' => false], ['key' => 'current_balance', 'label' => 'Current Balance', 'sortable' => false]];
     }
 
     public function accounts()
@@ -166,8 +247,7 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class ex
 <div>
     <x-header title="Chart Of Account List" size="text-xl" separator class="bg-white px-2 pt-3">
         <x-slot:actions>
-            <x-button icon="fas.plus" @click="$wire.createModal = true" label="Add Chart Of Account"
-                class="btn-primary btn-sm" />
+            <x-button icon="fas.plus" @click="$wire.createModal = true" label="Add Chart Of Account" class="btn-primary btn-sm" />
         </x-slot>
     </x-header>
     <x-card>
@@ -178,23 +258,20 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class ex
 
             @scope('actions', $account)
                 <div class="flex items-center gap-1">
-                    <x-button icon="fas.print" wire:click="print({{ $account['id'] }})"
-                        class="btn-primary btn-action text-white" />
+                    <x-button icon="fas.print" wire:click="print({{ $account['id'] }})" class="btn-primary btn-action text-white" />
                     <x-button icon="o-trash" wire:click="delete({{ $account['id'] }})" wire:confirm="Are you sure?"
                         class="btn-error btn-action text-white" />
-                    <x-button icon="s-pencil-square" wire:click="edit({{ $account['id'] }})"
-                        class="btn-neutral btn-action text-white" />
+                    <x-button icon="s-pencil-square" wire:click="edit({{ $account['id'] }})" class="btn-neutral btn-action text-white" />
                 </div>
             @endscope
         </x-table>
     </x-card>
     <x-modal wire:model="createModal" title="Add New Chart Of Account" separator>
         <x-form wire:submit="storeChartOfAccount">
-            <x-choices label="Type" wire:model.live="type" :options="$types" single required
-                placeholder="Select Type" />
-            <x-choices label="Category" wire:model="parent_id" :options="$categories" single required
-                placeholder="Select Category" />
+            <x-choices label="Type" wire:model.live="type" :options="$types" single required placeholder="Select Type" />
+            <x-choices label="Category" wire:model="parent_id" :options="$categories" single required placeholder="Select Category" />
             <x-input label="Account Name" wire:model="name" placeholder="Category Name" required />
+            <x-input label="Opening Balance" wire:model="opening_balance" placeholder="Opening Balance" required />
             <x-slot:actions>
                 <x-button label="Cancel" class="btn-sm" @click="$wire.createModal = false" />
                 <x-button type="submit" label="Add Account" class="btn-sm btn-primary" spinner="storeChartOfAccount" />
@@ -203,15 +280,13 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class ex
     </x-modal>
     <x-modal wire:model="editModal" title="Update {{ $account->name ?? '' }} Account" separator>
         <x-form wire:submit="updateChartOfAccount">
-            <x-choices label="Type" wire:model.live="type" :options="$types" single required
-                placeholder="Select Type" />
-            <x-choices label="Category" wire:model="parent_id" :options="$categories" single required
-                placeholder="Select Category" />
+            <x-choices label="Type" wire:model.live="type" :options="$types" single required placeholder="Select Type" />
+            <x-choices label="Category" wire:model="parent_id" :options="$categories" single required placeholder="Select Category" />
             <x-input label="Account Name" wire:model="name" placeholder="Category Name" required />
+            <x-input label="Opening Balance" wire:model="opening_balance" placeholder="Opening Balance" required />
             <x-slot:actions>
                 <x-button label="Cancel" class="btn-sm" @click="$wire.editModal = false" />
-                <x-button type="submit" label="Add Account" class="btn-sm btn-primary"
-                    spinner="updateChartOfAccount" />
+                <x-button type="submit" label="Save" class="btn-sm btn-primary" spinner="updateChartOfAccount" />
             </x-slot>
         </x-form>
     </x-modal>
