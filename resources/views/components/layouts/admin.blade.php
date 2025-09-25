@@ -290,9 +290,9 @@
                     <x-menu-sub title="Income & Expense" icon="fas.list" :open="request()->is('admin/income/list', 'admin/expense/list')">
                         <x-menu-item title="Incomes" icon="fas.list" link="/admin/income/list" />
                         <x-menu-item title="Expenses" icon="fas.list" link="/admin/expense/list" />
-                        @can('income-expense-approval')
+                        @if (auth()->user()->id == 1)
                             <x-menu-item title="Approvals" icon="fas.list" link="/admin/income-expense/approvals" />
-                        @endcan
+                        @endif
                     </x-menu-sub>
                     <x-menu-separator />
                 @endcan
