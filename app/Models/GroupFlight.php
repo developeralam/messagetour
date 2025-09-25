@@ -49,7 +49,14 @@ class GroupFlight extends Model
     public function getThumbnailLinkAttribute()
     {
         if ($this->thumbnail) {
-            return Storage::disk('public')->url('/' . $this->thumbnail);
+            // Direct file path for better compatibility
+            $filePath = public_path('storage/' . $this->thumbnail);
+            if (file_exists($filePath)) {
+                return url('storage/' . $this->thumbnail);
+            }
+            // Fallback to Storage URL
+            return Storage::disk('public')->url($this->thumbnail);
         }
+        return asset('group-flight.png');
     }
 }

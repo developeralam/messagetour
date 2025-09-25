@@ -76,8 +76,15 @@ class Car extends Model
     public function getImageLinkAttribute()
     {
         if ($this->image) {
-            return Storage::disk('public')->url('/' . $this->image);
+            // Direct file path for better compatibility
+            $filePath = public_path('storage/' . $this->image);
+            if (file_exists($filePath)) {
+                return url('storage/' . $this->image);
+            }
+            // Fallback to Storage URL
+            return Storage::disk('public')->url($this->image);
         }
+        return asset('empty-product.png');
     }
 
     public function bookings(): HasMany
