@@ -98,6 +98,31 @@ class Tour extends Model
         }
         return asset('empty-product.png');
     }
+
+    public function getImagesLinkAttribute()
+    {
+        if ($this->images && $this->images->isNotEmpty()) {
+            return $this->images->map(function ($image) {
+                if (isset($image['url'])) {
+                    // Check if it's already a full URL or just a path
+                    if (str_starts_with($image['url'], 'http')) {
+                        return $image['url'];
+                    }
+
+                    // If it's a path, check if file exists and return proper URL
+                    $filePath = public_path('storage/' . $image['url']);
+                    if (file_exists($filePath)) {
+                        return url('storage/' . $image['url']);
+                    }
+
+                    // Fallback to Storage URL
+                    return Storage::disk('public')->url($image['url']);
+                }
+                return null;
+            })->filter()->values();
+        }
+        return collect();
+    }
     public function reviews(): MorphMany
     {
         return $this->morphMany(Review::class, 'reviewable');

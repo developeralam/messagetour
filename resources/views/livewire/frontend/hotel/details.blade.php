@@ -169,21 +169,19 @@ new #[Layout('components.layouts.service-details')] #[Title('Hotel Details')] cl
         <div class="max-w-6xl mx-auto bg-white md:p-4 rounded-md shadow-lg">
             <div class="grid grid-cols-12 gap-4 px-3 md:px-0 pb-2 md:pb-0">
                 <div class="col-span-12 md:col-span-6">
-                    @if ($hotel->images)
-                        <div x-data="{ img: '{{ $hotel->images->first()['url'] }}' }" class="w-full">
-                            <img loading="lazy" :src="img" alt="Gold Necklace"
-                                class="w-full md:h-[500px] h-52 rounded-md pt-2 md:pt-0" />
+                    @if ($hotel->images_link && $hotel->images_link->isNotEmpty())
+                        <div x-data="{ img: '{{ $hotel->images_link->first() }}' }" class="w-full">
+                            <img loading="lazy" :src="img" alt="Hotel Image" class="w-full md:h-[500px] h-52 rounded-md pt-2 md:pt-0" />
                             <div class="flex space-x-2 mt-3 overflow-x-scroll">
-                                @foreach ($hotel->images as $image)
-                                    <img loading="lazy" src="{{ $image['url'] }}" @click="img = '{{ $image['url'] }}'"
-                                        alt="Thumbnail" class="w-20 h-20 cursor-pointer rounded-md" />
+                                @foreach ($hotel->images_link as $image)
+                                    <img loading="lazy" src="{{ $image }}" @click="img = '{{ $image }}'" alt="Thumbnail"
+                                        class="w-20 h-20 cursor-pointer rounded-md" />
                                 @endforeach
                             </div>
                         </div>
                     @else
                         <div class="w-full md:h-[500px] h-auto rounded-md overflow-hidden">
-                            <img loading="lazy" src="{{ $hotel->thumbnail_link }}" alt=""
-                                class="h-full w-full object-cover" />
+                            <img loading="lazy" src="{{ $hotel->thumbnail_link }}" alt="" class="h-full w-full object-cover" />
                         </div>
                     @endif
                 </div>
@@ -256,8 +254,7 @@ new #[Layout('components.layouts.service-details')] #[Title('Hotel Details')] cl
         <div class="max-w-6xl mx-auto flex flex-col gap-y-3">
             <h3 class="text-xl md:text-2xl font-semibold">Available Room's</h3>
             @foreach ($availableRooms as $room)
-                <div
-                    class="grid grid-cols-12 items-start gap-x-4 gap-y-3 border rounded-md shadow-lg mb-2 p-3 md:p-4 bg-white">
+                <div class="grid grid-cols-12 items-start gap-x-4 gap-y-3 border rounded-md shadow-lg mb-2 p-3 md:p-4 bg-white">
                     <div class="col-span-12 md:col-span-3 h-full rounded-md overflow-hidden shadow-md">
                         <img class="object-cover h-full w-full" src="{{ $room->thumbnail_link }}" alt="" />
                     </div>
@@ -280,8 +277,7 @@ new #[Layout('components.layouts.service-details')] #[Title('Hotel Details')] cl
                             </div>
                             <div class="flex items-center gap-2">
                                 <p class="font-semibold text-sm">Room Type:</p>
-                                <span
-                                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                     <x-icon name="fas.bed" class="w-3 h-3 me-1 text-green-600" />
                                     {{ $room->type->name }}
                                 </span>
@@ -290,8 +286,7 @@ new #[Layout('components.layouts.service-details')] #[Title('Hotel Details')] cl
                                 <p class="font-semibold mt-2 text-sm">Facilities</p>
                                 <div class="flex flex-wrap gap-1">
                                     @foreach ($room->aminities as $aminity)
-                                        <span
-                                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                             <x-icon name="fas.check-circle" class="w-3 h-3 me-1 text-green-600" />
                                             {{ $aminity->name }}
                                         </span>
@@ -306,9 +301,7 @@ new #[Layout('components.layouts.service-details')] #[Title('Hotel Details')] cl
                             @if ($room->offer_price && $room->offer_price < $room->regular_price)
                                 <p class="flex items-center gap-x-1 text-sm md:text-base">
                                     @php
-                                        $discountPercentage = round(
-                                            (($room->regular_price - $room->offer_price) / $room->regular_price) * 100,
-                                        );
+                                        $discountPercentage = round((($room->regular_price - $room->offer_price) / $room->regular_price) * 100);
                                     @endphp
 
                                     <del class="text-red-500 text-sm">BDT {{ $room->regular_price }}</del>
@@ -317,8 +310,7 @@ new #[Layout('components.layouts.service-details')] #[Title('Hotel Details')] cl
 
                             <div class="flex items-start">
                                 @if ($room->offer_price && $room->offer_price < $room->regular_price)
-                                    <img class="mt-[6px]" src="{{ asset('images/discount-mono.svg') }}"
-                                        alt="" />
+                                    <img class="mt-[6px]" src="{{ asset('images/discount-mono.svg') }}" alt="" />
                                     <p class="text-sm md:text-base flex items-center whitespace-nowrap gap-x-1">
                                         <span class="text-[#f73] text-xs font-bold">{{ $discountPercentage ?? '' }}
                                             OFF</span>
@@ -377,8 +369,8 @@ new #[Layout('components.layouts.service-details')] #[Title('Hotel Details')] cl
 
                         <!-- Section Header -->
                         <div class="flex items-center gap-2 border-b pb-2">
-                            <svg width="22" height="22" fill="none" stroke="#22C55E" stroke-width="1.5"
-                                viewBox="0 0 24 24" class="mt-[2px]">
+                            <svg width="22" height="22" fill="none" stroke="#22C55E" stroke-width="1.5" viewBox="0 0 24 24"
+                                class="mt-[2px]">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.357 4.19a1 1 0 00.95.69h4.394c.969 0 1.371 1.24.588 1.81l-3.562 2.59a1 1 0 00-.364 1.118l1.357 4.19c.3.921-.755 1.688-1.538 1.118l-3.562-2.59a1 1 0 00-1.176 0l-3.562 2.59c-.783.57-1.838-.197-1.538-1.118l1.357-4.19a1 1 0 00-.364-1.118L2.56 9.617c-.783-.57-.38-1.81.588-1.81h4.394a1 1 0 00.95-.69l1.357-4.19z" />
                             </svg>
@@ -401,8 +393,7 @@ new #[Layout('components.layouts.service-details')] #[Title('Hotel Details')] cl
                                     <!-- Dynamic Stars -->
                                     <div class="flex gap-1 text-sm">
                                         @for ($i = 1; $i <= 5; $i++)
-                                            <span
-                                                class="{{ $i <= $review->rating ? 'text-yellow-400' : 'text-gray-300' }}">★</span>
+                                            <span class="{{ $i <= $review->rating ? 'text-yellow-400' : 'text-gray-300' }}">★</span>
                                         @endfor
                                     </div>
                                 </div>
@@ -427,9 +418,8 @@ new #[Layout('components.layouts.service-details')] #[Title('Hotel Details')] cl
                                 </div>
 
                                 <!-- Comment Box -->
-                                <x-textarea label="Add a Comment" wire:model="comment"
-                                    placeholder="Write your experience..." class="custome-input-field"
-                                    row="10" />
+                                <x-textarea label="Add a Comment" wire:model="comment" placeholder="Write your experience..."
+                                    class="custome-input-field" row="10" />
 
                                 <!-- Submit Button -->
                                 <div>

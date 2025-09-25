@@ -109,11 +109,11 @@ new #[Layout('components.layouts.service-details')] #[Title('Tour Details')] cla
             <div class="md:grid md:grid-cols-12 gap-4">
                 {{-- Image Gallery --}}
                 <div class="md:col-span-4">
-                    <div x-data="{ img: '{{ $tour->images->first()['url'] ?? $tour->thumbnail_link }}' }">
+                    <div x-data="{ img: '{{ $tour->images_link->first() ?? $tour->thumbnail_link }}' }">
                         <img :src="img" class="w-full h-[280px] object-cover rounded-md shadow-sm mb-2" />
                         <div class="flex gap-2 overflow-x-auto">
-                            @foreach ($tour->images as $image)
-                                <img src="{{ $image['url'] }}" @click="img = '{{ $image['url'] }}'"
+                            @foreach ($tour->images_link as $image)
+                                <img src="{{ $image }}" @click="img = '{{ $image }}'"
                                     class="w-16 h-16 object-cover rounded-md cursor-pointer border hover:border-green-500" />
                             @endforeach
                         </div>
@@ -154,8 +154,7 @@ new #[Layout('components.layouts.service-details')] #[Title('Tour Details')] cla
                         @if ($tour->createdBy && $tour->createdBy->agent?->phone)
                             <div class="text-sm flex items-center text-gray-600 gap-2">
                                 <x-icon name="fas.phone" class="text-green-500 w-4 h-4" />
-                                <a
-                                    href="tel:{{ $tour->createdBy->agent->phone }}">{{ $tour->createdBy->agent->phone }}</a>
+                                <a href="tel:{{ $tour->createdBy->agent->phone }}">{{ $tour->createdBy->agent->phone }}</a>
                             </div>
                         @endif
                     </div>
@@ -206,9 +205,7 @@ new #[Layout('components.layouts.service-details')] #[Title('Tour Details')] cla
 
                                 @if ($tour->offer_price && $tour->offer_price < $tour->regular_price)
                                     @php
-                                        $discountPercentage = round(
-                                            (($tour->regular_price - $tour->offer_price) / $tour->regular_price) * 100,
-                                        );
+                                        $discountPercentage = round((($tour->regular_price - $tour->offer_price) / $tour->regular_price) * 100);
                                     @endphp
                                     <p class="text-red-500 text-sm mt-2 line-through">BDT {{ $tour->regular_price }}
                                     </p>
@@ -271,8 +268,8 @@ new #[Layout('components.layouts.service-details')] #[Title('Tour Details')] cla
 
                         <!-- Section Header -->
                         <div class="flex items-center gap-2 border-b pb-2">
-                            <svg width="22" height="22" fill="none" stroke="#22C55E" stroke-width="1.5"
-                                viewBox="0 0 24 24" class="mt-[2px]">
+                            <svg width="22" height="22" fill="none" stroke="#22C55E" stroke-width="1.5" viewBox="0 0 24 24"
+                                class="mt-[2px]">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.357 4.19a1 1 0 00.95.69h4.394c.969 0 1.371 1.24.588 1.81l-3.562 2.59a1 1 0 00-.364 1.118l1.357 4.19c.3.921-.755 1.688-1.538 1.118l-3.562-2.59a1 1 0 00-1.176 0l-3.562 2.59c-.783.57-1.838-.197-1.538-1.118l1.357-4.19a1 1 0 00-.364-1.118L2.56 9.617c-.783-.57-.38-1.81.588-1.81h4.394a1 1 0 00.95-.69l1.357-4.19z" />
                             </svg>
@@ -294,8 +291,7 @@ new #[Layout('components.layouts.service-details')] #[Title('Tour Details')] cla
                                     <!-- Dynamic Stars -->
                                     <div class="flex gap-1 text-sm">
                                         @for ($i = 1; $i <= 5; $i++)
-                                            <span
-                                                class="{{ $i <= $review->rating ? 'text-yellow-400' : 'text-gray-300' }}">★</span>
+                                            <span class="{{ $i <= $review->rating ? 'text-yellow-400' : 'text-gray-300' }}">★</span>
                                         @endfor
                                     </div>
                                 </div>
@@ -320,9 +316,8 @@ new #[Layout('components.layouts.service-details')] #[Title('Tour Details')] cla
                                 </div>
 
                                 <!-- Comment Box -->
-                                <x-textarea label="Add a Comment" wire:model="comment"
-                                    placeholder="Write your experience..." class="custome-input-field"
-                                    row="10" />
+                                <x-textarea label="Add a Comment" wire:model="comment" placeholder="Write your experience..."
+                                    class="custome-input-field" row="10" />
 
                                 <!-- Submit Button -->
                                 <div>
