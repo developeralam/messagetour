@@ -71,10 +71,26 @@ new #[Layout('components.layouts.partner')] #[Title('Update Room')] class extend
             $this->regular_price = $response->regular_price;
             $this->offer_price = $response->offer_price;
             $this->library = $response->images ?? collect();
+            $this->refreshExistingImages();
             $this->aminitiesIds = $response->aminities->pluck('id')->toArray();
             $this->aminities();
         }
         $this->types = HotelRoomType::getHotelRoomTypes();
+    }
+
+    public function refreshExistingImages()
+    {
+        if ($this->library && $this->library->isNotEmpty()) {
+            $this->library = $this->library->map(function ($image) {
+                if (isset($image['url'])) {
+                    // Ensure URL is properly formatted
+                    if (!str_starts_with($image['url'], 'http')) {
+                        $image['url'] = url('storage/' . $image['url']);
+                    }
+                }
+                return $image;
+            });
+        }
     }
     public function aminities()
     {
@@ -132,11 +148,9 @@ new #[Layout('components.layouts.partner')] #[Title('Update Room')] class extend
 }; ?>
 
 <div>
-    <x-header title="Update {{ $room->room_no }} In {{ $room->hotel->name }} Hotel" separator size="text-xl"
-        class="bg-white px-2 pt-2">
+    <x-header title="Update {{ $room->room_no }} In {{ $room->hotel->name }} Hotel" separator size="text-xl" class="bg-white px-2 pt-2">
         <x-slot:actions>
-            <x-button label="Room List" icon="fas.arrow-left" link="/partner/hotel/{{ $room->hotel_id }}/room/list"
-                class="btn-primary btn-sm" />
+            <x-button label="Room List" icon="fas.arrow-left" link="/partner/hotel/{{ $room->hotel_id }}/room/list" class="btn-primary btn-sm" />
         </x-slot>
     </x-header>
     <x-form wire:submit="updateRoom">
@@ -146,21 +160,18 @@ new #[Layout('components.layouts.partner')] #[Title('Update Room')] class extend
                 <div class="grid grid-cols-2 gap-4 pb-6">
                     <x-input label="Room Name" wire:model="name" placeholder="Room Name" />
                     <x-input label="Room No" wire:model="room_no" placeholder="Room No" />
-                    <x-choices label="Room type" :options="$types" single wire:model.live="type"
-                        placeholder="Select One" />
+                    <x-choices label="Room type" :options="$types" single wire:model.live="type" placeholder="Select One" />
                     <x-input label="Room Size" wire:model="room_size" placeholder="Ex: 200 Squre feet" />
-                    <x-input type="number" label=" Max Occupancy" wire:model="max_occupancy"
-                        placeholder="Ex: 2 Person" />
-                    <x-input type="number" label="Regular Price" wire:model="regular_price"
-                        placeholder="Regular Price" />
+                    <x-input type="number" label=" Max Occupancy" wire:model="max_occupancy" placeholder="Ex: 2 Person" />
+                    <x-input type="number" label="Regular Price" wire:model="regular_price" placeholder="Regular Price" />
                     <x-input type="number" label="Offer Price" wire:model="offer_price" placeholder="Offer Price" />
                 </div>
             </x-card>
             <div class="col-span-1">
                 <x-card>
                     <x-devider title="Additional Information" />
-                    <x-choices label="Aminities" class="mb-4 overflow-hidden" :options="$aminities"
-                        wire:model="aminitiesIds" placeholder="Select Aminities" />
+                    <x-choices label="Aminities" class="mb-4 overflow-hidden" :options="$aminities" wire:model="aminitiesIds"
+                        placeholder="Select Aminities" />
                     <x-file label="Thumbnail" wire:model="thumbnail" accept="image/png, image/jpeg">
                         <img src="{{ $room->thumbnail_link }}" alt="" class="h-20 rounded-lg" />
                     </x-file>
@@ -171,16 +182,14 @@ new #[Layout('components.layouts.partner')] #[Title('Update Room')] class extend
                         $config = ['guides' => false];
                     @endphp
 
-                    <x-image-library wire:model="files" :crop-config="$config" {{-- Temprary files --}} wire:library="library"
-                        {{-- Library metadata property --}} :preview="$library" {{-- Preview control --}} label="Room Images"
-                        hint="Max 100Kb" change-text="Change" crop-text="Crop" remove-text="Remove"
-                        crop-title-text="Crop image" crop-cancel-text="Cancel" crop-save-text="Crop"
+                    <x-image-library wire:model="files" :crop-config="$config" {{-- Temprary files --}} wire:library="library" {{-- Library metadata property --}}
+                        :preview="$library" {{-- Preview control --}} label="Room Images" hint="Max 100Kb" change-text="Change" crop-text="Crop"
+                        remove-text="Remove" crop-title-text="Crop image" crop-cancel-text="Cancel" crop-save-text="Crop"
                         add-files-text="Add room images" />
 
                     <x-menu-separator />
                     <x-slot:actions>
-                        <x-button label="Room List" link="/partner/hotel/{{ $room->hotel->id }}/room/list"
-                            class="btn-sm" />
+                        <x-button label="Room List" link="/partner/hotel/{{ $room->hotel->id }}/room/list" class="btn-sm" />
                         <x-button type="submit" label="Update Room" class="btn-primary btn-sm" spinner="updateRoom" />
                     </x-slot>
                 </x-card>

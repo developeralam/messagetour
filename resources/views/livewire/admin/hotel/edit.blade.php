@@ -112,10 +112,27 @@ new #[Layout('components.layouts.admin')] #[Title('Hotel Edit')] class extends C
             $this->google_map_iframe = $this->hotel->google_map_iframe;
             $this->status = $this->hotel->status;
             $this->library = $this->hotel->images ?? collect();
+            $this->refreshExistingImages();
             $this->types = HotelType::getHotelTypes();
             $this->statuses = HotelStatus::getHotelStatuses();
         }
     }
+
+    public function refreshExistingImages()
+    {
+        if ($this->library && $this->library->isNotEmpty()) {
+            $this->library = $this->library->map(function ($image) {
+                if (isset($image['url'])) {
+                    // Ensure URL is properly formatted
+                    if (!str_starts_with($image['url'], 'http')) {
+                        $image['url'] = url('storage/' . $image['url']);
+                    }
+                }
+                return $image;
+            });
+        }
+    }
+
     public function divisions()
     {
         $this->divisions = Division::query()->when($this->country_id, fn(Builder $q) => $q->where('country_id', $this->country_id))->get();

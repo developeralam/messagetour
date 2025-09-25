@@ -112,10 +112,26 @@ new #[Layout('components.layouts.partner')] #[Title('Update Tour')] class extend
             $this->offer_price = $tourRes->offer_price;
             $this->types = TourType::getTourTypes();
             $this->library = $tourRes->images ?? collect();
+            $this->refreshExistingImages();
         }
         $this->tour_types = TourType::getTourTypes();
         $this->countries = Country::where('status', CountryStatus::Active)->get();
         $this->tour_status = TourStatus::getTourStatuses();
+    }
+
+    public function refreshExistingImages()
+    {
+        if ($this->library && $this->library->isNotEmpty()) {
+            $this->library = $this->library->map(function ($image) {
+                if (isset($image['url'])) {
+                    // Ensure URL is properly formatted
+                    if (!str_starts_with($image['url'], 'http')) {
+                        $image['url'] = url('storage/' . $image['url']);
+                    }
+                }
+                return $image;
+            });
+        }
     }
     public function divisions()
     {
