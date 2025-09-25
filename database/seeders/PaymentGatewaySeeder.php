@@ -34,6 +34,10 @@ class PaymentGatewaySeeder extends Seeder
                 'name' => 'Wallet',
                 'charge' => '0',
             ],
+            [
+                'name' => 'Manual',
+                'charge' => '0',
+            ],
         ];
         foreach ($gateways as $gateway) {
             PaymentGateway::create([

@@ -21,6 +21,21 @@ new #[Layout('components.layouts.admin')] #[Title('Bank')] class extends Compone
     public $name;
 
     #[Rule('required')]
+    public $ac_no;
+
+    #[Rule('nullable')]
+    public $branch;
+
+    #[Rule('required')]
+    public $address;
+
+    #[Rule('required')]
+    public $swift_code;
+
+    #[Rule('required')]
+    public $routing_no;
+
+    #[Rule('required')]
     public $country_id;
 
     public bool $createModal = false;
@@ -36,9 +51,14 @@ new #[Layout('components.layouts.admin')] #[Title('Bank')] class extends Compone
             $this->validate();
             Bank::create([
                 'name' => $this->name,
+                'ac_no' => $this->ac_no,
+                'branch' => $this->branch,
+                'address' => $this->address,
+                'swift_code' => $this->swift_code,
+                'routing_no' => $this->routing_no,
                 'country_id' => $this->country_id,
             ]);
-            $this->reset(['name', 'country_id']);
+            $this->reset(['name', 'ac_no', 'branch', 'address', 'swift_code', 'routing_no', 'country_id']);
             $this->success('Bank Added Successfully');
             $this->createModal = false;
         } catch (\Throwable $th) {
@@ -48,9 +68,14 @@ new #[Layout('components.layouts.admin')] #[Title('Bank')] class extends Compone
     }
     public function edit(Bank $bank)
     {
-        $this->reset(['name', 'country_id']);
+        $this->reset(['name', 'ac_no', 'branch', 'address', 'swift_code', 'routing_no', 'country_id']);
         $this->bank = $bank;
         $this->name = $bank->name;
+        $this->ac_no = $bank->ac_no;
+        $this->branch = $bank->branch ?? '';
+        $this->address = $bank->address;
+        $this->swift_code = $bank->swift_code;
+        $this->routing_no = $bank->routing_no;
         $this->country_id = $bank->country_id;
         $this->editModal = true;
     }
@@ -63,7 +88,7 @@ new #[Layout('components.layouts.admin')] #[Title('Bank')] class extends Compone
                 'country_id' => $this->country_id,
                 'action_by' => auth()->user()->id,
             ]);
-            $this->reset(['name', 'country_id']);
+            $this->reset(['name', 'ac_no', 'branch', 'address', 'swift_code', 'routing_no', 'country_id']);
             $this->success('Bank Updated Successfully');
             $this->editModal = false;
         } catch (\Throwable $th) {
@@ -84,7 +109,7 @@ new #[Layout('components.layouts.admin')] #[Title('Bank')] class extends Compone
     }
     public function headers(): array
     {
-        return [['key' => 'id', 'label' => '#'], ['key' => 'name', 'label' => 'Bank Name'], ['key' => 'country.name', 'label' => 'Country'], ['key' => 'action_by', 'label' => 'Last Action By']];
+        return [['key' => 'id', 'label' => '#'], ['key' => 'name', 'label' => 'Bank Name'], ['key' => 'branch', 'label' => 'Branch'], ['key' => 'address', 'label' => 'Bank Address'], ['key' => 'country.name', 'label' => 'Country'], ['key' => 'ac_no', 'label' => 'A/C No'], ['key' => 'swift_code', 'label' => 'Swift Code'], ['key' => 'routing_no', 'label' => 'Routing No'], ['key' => 'action_by', 'label' => 'Last Action By']];
     }
     public function banks()
     {
@@ -116,15 +141,16 @@ new #[Layout('components.layouts.admin')] #[Title('Bank')] class extends Compone
             @scope('cell_id', $bank, $banks)
                 {{ $loop->iteration + ($banks->currentPage() - 1) * $banks->perPage() }}
             @endscope
+            @scope('cell_branch', $bank)
+                {{ $bank->branch->name ?? 'N/A' }}
+            @endscope
             @scope('cell_action_by', $bank)
-                {{ $bank->actionBy->name ?? '' }}
+                {{ $bank->actionBy->name ?? 'N/A' }}
             @endscope
             @scope('actions', $bank)
                 <div class="flex items-center gap-1">
-                    <x-button icon="o-trash" wire:click="delete({{ $bank['id'] }})" wire:confirm="Are you sure?"
-                        class="btn-error btn-action" />
-                    <x-button icon="s-pencil-square" wire:click="edit({{ $bank['id'] }})"
-                        class="btn-neutral btn-action" />
+                    <x-button icon="o-trash" wire:click="delete({{ $bank['id'] }})" wire:confirm="Are you sure?" class="btn-error btn-action" />
+                    <x-button icon="s-pencil-square" wire:click="edit({{ $bank['id'] }})" class="btn-neutral btn-action" />
                 </div>
             @endscope
         </x-table>
@@ -132,8 +158,7 @@ new #[Layout('components.layouts.admin')] #[Title('Bank')] class extends Compone
     <x-modal wire:model="createModal" title="Add New Bank" separator>
         <x-form wire:submit="storeBank">
             <x-input label="Bank Name" wire:model="name" placeholder="Bank Name" required />
-            <x-choices label="Country" wire:model="country_id" single placeholder="Select Country" :options="$countries"
-                required />
+            <x-choices label="Country" wire:model="country_id" single placeholder="Select Country" :options="$countries" required />
             <x-slot:actions>
                 <x-button label="Cancel" @click="$wire.createModal = false" class="btn-sm" />
                 <x-button type="submit" label="Add Bank" class="btn-primary btn-sm" spinner="storeBank" />
@@ -143,8 +168,7 @@ new #[Layout('components.layouts.admin')] #[Title('Bank')] class extends Compone
     <x-modal wire:model="editModal" title="Update {{ $bank->name ?? '' }}" separator>
         <x-form wire:submit="updateBank">
             <x-input label="Bank Name" wire:model="name" placeholder="Bank Name" required />
-            <x-choices label="Country" wire:model="country_id" single placeholder="Select Country" :options="$countries"
-                required />
+            <x-choices label="Country" wire:model="country_id" single placeholder="Select Country" :options="$countries" required />
             <x-slot:actions>
                 <x-button label="Cancel" @click="$wire.editModal = false" class="btn-sm" />
                 <x-button type="submit" label="Update Bank" class="btn-primary btn-sm" spinner="updateBank" />

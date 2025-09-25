@@ -212,22 +212,17 @@ new #[Layout('components.layouts.partner')] #[Title('Deposit Request')] class ex
             @endscope
             @scope('cell_status', $deposit)
                 @if ($deposit->status == \App\Enum\DepositStatus::Approved)
-                    <x-badge value="{{ $deposit->status->label() }}"
-                        class="bg-green-100 text-green-700 p-3 text-xs font-semibold" />
+                    <x-badge value="{{ $deposit->status->label() }}" class="bg-green-100 text-green-700 p-3 text-xs font-semibold" />
                 @elseif ($deposit->status == \App\Enum\DepositStatus::Pending)
-                    <x-badge value="{{ $deposit->status->label() }}"
-                        class="bg-yellow-100 text-yellow-700 p-3 text-xs font-semibold" />
+                    <x-badge value="{{ $deposit->status->label() }}" class="bg-yellow-100 text-yellow-700 p-3 text-xs font-semibold" />
                 @elseif ($deposit->status == \App\Enum\DepositStatus::Declined)
-                    <x-badge value="{{ $deposit->status->label() }}"
-                        class="bg-red-100 text-red-700 p-3 text-xs font-semibold" />
+                    <x-badge value="{{ $deposit->status->label() }}" class="bg-red-100 text-red-700 p-3 text-xs font-semibold" />
                 @endif
             @endscope
             @scope('actions', $deposit)
                 <div class="flex items-center gap-1">
-                    <x-button icon="o-trash" wire:click="delete({{ $deposit['id'] }})" wire:confirm="Are you sure?"
-                        class="btn-error btn-action" />
-                    <x-button icon="s-pencil-square" wire:click="edit({{ $deposit['id'] }})"
-                        class="btn-neutral btn-action" />
+                    <x-button icon="o-trash" wire:click="delete({{ $deposit['id'] }})" wire:confirm="Are you sure?" class="btn-error btn-action" />
+                    <x-button icon="s-pencil-square" wire:click="edit({{ $deposit['id'] }})" class="btn-neutral btn-action" />
                 </div>
             @endscope
         </x-table>
@@ -235,12 +230,10 @@ new #[Layout('components.layouts.partner')] #[Title('Deposit Request')] class ex
     <x-modal wire:model="createModal" title="Add New Deposit Request" separator boxClass="max-w-5xl">
         <x-form wire:submit="createDeposit">
             <div class="grid grid-cols-3 gap-2">
-                <x-choices label="Payment Type" wire:model.live="payment_type" :options="$depositTypes" single
-                    placeholder="Select Payment Type" required />
+                <x-choices label="Payment Type" wire:model.live="payment_type" :options="$depositTypes" single placeholder="Select Payment Type" required />
                 @if ($payment_type == 1)
                     <x-input label="Deposit Form" wire:model="deposit_form" placeholder="Deposit Form" required />
-                    <x-choices label="Deposit To" wire:model="deposit_to" placeholder="Select Deposit To"
-                        :options="$depositToBanks" required single />
+                    <x-choices label="Deposit To" wire:model="deposit_to" placeholder="Select Deposit To" :options="$depositToBanks" required single />
                     <x-input label="Branch Name" wire:model="branch" placeholder="Branch Name" />
                 @endif
                 <x-input label="Transaction ID" wire:model="trx_id" placeholder="Transaction ID" />
@@ -258,10 +251,9 @@ new #[Layout('components.layouts.partner')] #[Title('Deposit Request')] class ex
         <x-form wire:submit="updateDeposit">
             <div class="grid grid-cols-3 gap-2">
                 <x-choices label="Payment Type" wire:model.live="payment_type" :options="$depositTypes" single required />
-                @if ($payment_type == \App\Enum\DepositType::Bank)
+                @if ($payment_type == 1)
                     <x-input label="Deposit Form" wire:model="deposit_form" placeholder="Deposit Form" required />
-                    <x-choices label="Deposit To" wire:model="deposit_to" placeholder="Select Deposit To"
-                        :options="$depositToBanks" required single />
+                    <x-choices label="Deposit To" wire:model="deposit_to" placeholder="Select Deposit To" :options="$depositToBanks" required single />
                     <x-input label="Branch Name" wire:model="branch" placeholder="Branch Name" />
                 @endif
                 <x-input label="Transaction ID" wire:model="trx_id" placeholder="Transaction ID" />

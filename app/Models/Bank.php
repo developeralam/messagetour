@@ -13,6 +13,11 @@ class Bank extends Model
     use SoftDeletes;
     protected $fillable = [
         'name',
+        'ac_no',
+        'branch',
+        'address',
+        'swift_code',
+        'routing_no',
         'country_id',
         'action_by',
     ];
