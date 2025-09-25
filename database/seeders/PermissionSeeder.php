@@ -50,6 +50,7 @@ class PermissionSeeder extends Seeder
             'location',
             'globalsettings',
             'aboutus',
+            'income-expense'
         ];
         foreach ($permissions as $permission) {
             $res = Permission::where('name', $permission)->first();

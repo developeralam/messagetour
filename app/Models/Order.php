@@ -120,4 +120,9 @@ class Order extends Model
     {
         return $this->hasMany(TravelProductBooking::class);
     }
+
+    public function agentPaymentRequests(): HasMany
+    {
+        return $this->hasMany(AgentPaymentRequest::class);
+    }
 }

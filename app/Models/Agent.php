@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Agent extends Model
 {
@@ -85,5 +86,10 @@ class Agent extends Model
     public function actionBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'action_by', 'id');
+    }
+
+    public function paymentRequests(): HasMany
+    {
+        return $this->hasMany(AgentPaymentRequest::class);
     }
 }

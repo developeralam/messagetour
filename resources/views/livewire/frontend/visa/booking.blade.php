@@ -377,6 +377,18 @@ new #[Layout('components.layouts.app')] #[Title('Visa Booking')] class extends C
             }
 
             if ($order->payment_gateway_id == 4) {
+                // Create payment request for Cash on Delivery
+                $bookingAgent = auth()->user()->agent;
+                if ($bookingAgent) {
+                    \App\Models\AgentPaymentRequest::create([
+                        'agent_id' => $bookingAgent->id,
+                        'order_id' => $order->id,
+                        'amount' => $order->total_amount,
+                        'status' => 'pending',
+                        'notes' => 'Cash on Delivery payment request',
+                    ]);
+                }
+
                 return redirect()->route('order.invoice', ['order' => $order->id]);
             }
 

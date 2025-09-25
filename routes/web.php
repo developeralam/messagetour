@@ -149,6 +149,7 @@ Route::middleware(Admin::class)->prefix('admin')->name('.admin')->group(function
     Volt::route('/agent/travel-product/list', 'admin.travelproduct.agentlist');
     Volt::route('/transaction/history', 'admin.transaction-history');
     Volt::route('/deposit-request', 'admin.depositrequest')->name('deposit.request');
+    Volt::route('/agent-payment-requests', 'admin.agent-payment-request')->name('agent.payment.requests');
 
     // Hotel
     Route::prefix('hotel')->group(function () {
@@ -268,6 +269,7 @@ Route::middleware(Partner::class)->prefix('partner')->name('.partner')->group(fu
     Volt::route('/markup', 'partner.markup')->name('markup');
     Volt::route('/wallet', 'partner.wallet')->name('wallet');
     Volt::route('/deposit-request', 'partner.depositrequest')->name('deposit.request');
+    Volt::route('/payment-requests', 'partner.agent-payment-request')->name('payment.requests');
     Volt::route('/profile', 'partner.profile')->name('profile');
     Volt::route('/order/list', 'partner.orderlist')->name('orderlist');
     Volt::route('/booking/list', 'partner.bookinglist')->name('bookinglist');
