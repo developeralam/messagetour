@@ -1,8 +1,9 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
+use App\Enum\TransactionStatus;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
 
 return new class extends Migration
 {
@@ -19,6 +20,8 @@ return new class extends Migration
             $table->decimal('amount', 15, 2);
             $table->string('reference')->nullable();
             $table->text('remarks')->nullable();
+            $table->tinyInteger('status')->default(TransactionStatus::PENDING);
+            $table->foreignId('created_by')->nullable()->constrained('users');
             $table->foreignId('action_by')->nullable()->constrained('users');
             $table->softDeletes();
             $table->timestamps();

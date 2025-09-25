@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Agent;
 use App\Models\Customer;
 use App\Models\ChartOfAccount;
+use App\Enum\TransactionStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -25,7 +26,13 @@ class Income extends Model
         'amount',
         'reference',
         'remarks',
+        'status',
+        'created_by',
         'action_by',
+    ];
+
+    protected $casts = [
+        'status' => TransactionStatus::class,
     ];
 
     /**
@@ -49,6 +56,14 @@ class Income extends Model
     {
         return $this->belongsTo(ChartOfAccount::class, 'account_id');
     }
+    /**
+     * Get the user who created the income.
+     */
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
     /**
      * Get the user who performed the action.
      */

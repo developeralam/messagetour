@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\User;
 use App\Models\ChartOfAccount;
+use App\Enum\TransactionStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -19,7 +20,13 @@ class Expense extends Model
         'amount',
         'account_id',
         'remarks',
+        'status',
+        'created_by',
         'action_by',
+    ];
+
+    protected $casts = [
+        'status' => TransactionStatus::class,
     ];
 
     /**
@@ -36,6 +43,14 @@ class Expense extends Model
     {
         return $this->belongsTo(ChartOfAccount::class, 'account_id');
     }
+    /**
+     * Get the user who created the expense.
+     */
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
     /**
      * Get the user who performed the action.
      */

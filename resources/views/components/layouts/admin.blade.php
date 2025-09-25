@@ -27,8 +27,7 @@
                 <!-- Hidden when collapsed -->
                 <div {{ $attributes->class(['hidden-when-collapsed']) }}>
                     <div class="flex items-center gap-2">
-                        <img class="w-48 h-10" src="{{ asset($globalSettings->logo_link ?? 'logo.png') }}"
-                            alt="Logo">
+                        <img class="w-48 h-10" src="{{ asset($globalSettings->logo_link ?? 'logo.png') }}" alt="Logo">
                     </div>
                 </div>
                 <!-- Display when collapsed -->
@@ -99,8 +98,7 @@
                     <x-menu-sub title="Travel Product" icon="fab.product-hunt" :open="request()->is('admin/travel-product/*', 'admin/agent/travel-product/list')">
                         <x-menu-item title="Product List" icon="fas.list" link="/admin/travel-product/list" />
                         <x-menu-item title="Agent Product List" icon="fas.list" link="/admin/agent/travel-product/list" />
-                        <x-menu-item title="Add Product" icon="fas.plus" no-wire-navigate
-                            link="/admin/travel-product/create" />
+                        <x-menu-item title="Add Product" icon="fas.plus" no-wire-navigate link="/admin/travel-product/create" />
                     </x-menu-sub>
                     <x-menu-separator />
                 @endcan
@@ -109,8 +107,7 @@
                     {{-- Group Flight --}}
                     <x-menu-sub title="Group Flight" icon="fas.plane-departure" :open="request()->is('admin/group-flight/*')">
                         <x-menu-item title="Group Flight List" icon="fas.list" link="/admin/group-flight/list" />
-                        <x-menu-item title="Add Group Flight" icon="fas.plus" no-wire-navigate
-                            link="/admin/group-flight/create" />
+                        <x-menu-item title="Add Group Flight" icon="fas.plus" no-wire-navigate link="/admin/group-flight/create" />
                     </x-menu-sub>
                     <x-menu-separator />
                 @endcan
@@ -138,8 +135,7 @@
                         @endcan
 
                         @can('bookings')
-                            <x-menu-item title="Group Flight Bookings" icon="fas.list"
-                                link="/admin/group-flight/booking/list" />
+                            <x-menu-item title="Group Flight Bookings" icon="fas.list" link="/admin/group-flight/booking/list" />
                             <x-menu-item title="E-visa Bookings" icon="fas.list" link="/admin/e-visa/booking/list" />
                             <x-menu-item title="Other Bookings List" icon="fas.list" link="/admin/booking/list" />
                         @endcan
@@ -207,8 +203,7 @@
                     <x-menu-separator />
                 @endcan
 
-                @canany(['offer', 'faq', 'coupon', 'blog', 'subscriber', 'contactus', 'aboutus', 'globalsettings',
-                    'reviews'])
+                @canany(['offer', 'faq', 'coupon', 'blog', 'subscriber', 'contactus', 'aboutus', 'globalsettings', 'reviews'])
                     <x-menu-sub title="Website Management" icon="fas.w" :open="request()->is(
                         'admin/blog/*',
                         'admin/subscribers',
@@ -261,15 +256,13 @@
 
                 {{-- Other Transactions --}}
                 @php
-                    $showOtherTransactionsMenu =
-                        auth()->user()->can('voucher.list') || auth()->user()->can('voucher.create');
+                    $showOtherTransactionsMenu = auth()->user()->can('voucher.list') || auth()->user()->can('voucher.create');
                 @endphp
 
                 @if ($showOtherTransactionsMenu)
                     <x-menu-sub title="Other Transactions" icon="fas.money-bill-transfer" :open="request()->is('admin/others-transcaiton/create', 'admin/others-transcaiton/list')">
                         @can('voucher.list')
-                            <x-menu-item title="Add New Voucher" icon="fas.plus"
-                                link="/admin/others-transcaiton/create" />
+                            <x-menu-item title="Add New Voucher" icon="fas.plus" link="/admin/others-transcaiton/create" />
                         @endcan
 
                         @can('voucher.create')
@@ -281,10 +274,7 @@
 
                 @can('chart-of-account')
                     {{-- Chart Of Account --}}
-                    <x-menu-sub title="Chart Of Account" icon="fas.book" :open="request()->is(
-                        'admin/accounts/chart-of-account-category',
-                        'admin/accounts/chart-of-account',
-                    )">
+                    <x-menu-sub title="Chart Of Account" icon="fas.book" :open="request()->is('admin/accounts/chart-of-account-category', 'admin/accounts/chart-of-account')">
                         <x-menu-item title="Category" icon="fas.list" link="/admin/accounts/chart-of-account-category" />
                         <x-menu-item title="Account" icon="fas.list" link="/admin/accounts/chart-of-account" />
                     </x-menu-sub>
@@ -300,6 +290,9 @@
                     <x-menu-sub title="Income & Expense" icon="fas.list" :open="request()->is('admin/income/list', 'admin/expense/list')">
                         <x-menu-item title="Incomes" icon="fas.list" link="/admin/income/list" />
                         <x-menu-item title="Expenses" icon="fas.list" link="/admin/expense/list" />
+                        @can('income-expense-approval')
+                            <x-menu-item title="Approvals" icon="fas.list" link="/admin/income-expense/approvals" />
+                        @endcan
                     </x-menu-sub>
                     <x-menu-separator />
                 @endcan
@@ -323,8 +316,7 @@
                     {{-- System User Management --}}
                     <x-menu-sub title="System User Management" icon="fas.user" :open="request()->is('admin/role/list', 'admin/system-user/list')">
                         <x-menu-item no-wire-navigate title="Role Management" icon="fas.list" link="/admin/role/list" />
-                        <x-menu-item no-wire-navigate title="User Management" icon="fas.list"
-                            link="/admin/system-user/list" />
+                        <x-menu-item no-wire-navigate title="User Management" icon="fas.list" link="/admin/system-user/list" />
                     </x-menu-sub>
                     <x-menu-separator />
                 @endcan

@@ -1,15 +1,16 @@
 <?php
 
 use Carbon\Carbon;
+use App\Models\Agent;
 use App\Models\Income;
 use Mary\Traits\Toast;
 use App\Models\Customer;
-use App\Models\Agent;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Rule;
 use App\Models\ChartOfAccount;
 use Livewire\Attributes\Title;
+use App\Enum\TransactionStatus;
 use Livewire\Attributes\Layout;
 use App\Services\TransactionService;
 
@@ -78,7 +79,7 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
 
     public function headers(): array
     {
-        return [['key' => 'id', 'label' => '#'], ['key' => 'customer', 'label' => 'Customer'], ['key' => 'agent', 'label' => 'Agent'], ['key' => 'account', 'label' => 'Account'], ['key' => 'amount', 'label' => 'Amount'], ['key' => 'remarks', 'label' => 'Remarks'], ['key' => 'reference', 'label' => 'Reference'], ['key' => 'created_at', 'label' => 'Created At'], ['key' => 'action_by', 'label' => 'Last Action By']];
+        return [['key' => 'id', 'label' => '#'], ['key' => 'customer', 'label' => 'Customer'], ['key' => 'agent', 'label' => 'Agent'], ['key' => 'account', 'label' => 'Account'], ['key' => 'amount', 'label' => 'Amount'], ['key' => 'remarks', 'label' => 'Remarks'], ['key' => 'reference', 'label' => 'Reference'], ['key' => 'created_at', 'label' => 'Created At'], ['key' => 'status', 'label' => 'Status'], ['key' => 'action_by', 'label' => 'Last Action By']];
     }
 
     public function incomes()
@@ -115,20 +116,23 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
         try {
             $income = Income::create([
                 'customer_id' => $this->customer_id,
+                'agent_id' => $this->agent_id,
                 'account_id' => $this->account_id,
                 'amount' => $this->amount,
                 'reference' => $this->reference,
                 'remarks' => $this->remarks,
+                'status' => TransactionStatus::PENDING,
+                'created_by' => auth()->user()->id,
             ]);
-            TransactionService::recordTransaction([
-                'source_type' => Income::class,
-                'source_id' => $income->id,
-                'date' => now(),
-                'amount' => $this->amount,
-                'debit_account_id' => $this->account_id,
-                'credit_account_id' => ChartOfAccount::where('name', 'Revenue Income')->first()->id,
-                'description' => 'Income Transaction Information Record',
-            ]);
+            // TransactionService::recordTransaction([
+            //     'source_type' => Income::class,
+            //     'source_id' => $income->id,
+            //     'date' => now(),
+            //     'amount' => $this->amount,
+            //     'debit_account_id' => $this->account_id,
+            //     'credit_account_id' => ChartOfAccount::where('name', 'Revenue Income')->first()->id,
+            //     'description' => 'Income Transaction Information Record',
+            // ]);
             $this->createModal = false;
             $this->success('Income Added Successfully');
         } catch (\Throwable $th) {
@@ -200,6 +204,9 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
             @scope('cell_account', $income)
                 {{ $income->account->name ?? 'N/A' }}
             @endscope
+            @scope('cell_status', $income)
+                {{ $income->status->label() ?? 'N/A' }}
+            @endscope
             @scope('cell_action_by', $income)
                 {{ $income->actionBy->name ?? 'N/A' }}
             @endscope
@@ -209,8 +216,8 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
             @scope('cell_reference', $income)
                 {{ $income->reference ?? 'N/A' }}
             @endscope
-            @scope('cell_created_at', $expense)
-                {{ $expense->created_at->format('d M, Y') }}
+            @scope('cell_created_at', $income)
+                {{ $income->created_at->format('d M, Y') }}
             @endscope
             @scope('cell_amount', $income)
                 BDT {{ number_format($income->amount) }}

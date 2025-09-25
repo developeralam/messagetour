@@ -8,6 +8,7 @@ use Livewire\WithPagination;
 use Livewire\Attributes\Rule;
 use App\Models\ChartOfAccount;
 use Livewire\Attributes\Title;
+use App\Enum\TransactionStatus;
 use Livewire\Attributes\Layout;
 use App\Services\TransactionService;
 
@@ -69,7 +70,7 @@ new #[Layout('components.layouts.admin')] #[Title('Expense List')] class extends
 
     public function headers(): array
     {
-        return [['key' => 'id', 'label' => '#'], ['key' => 'expense_head', 'label' => 'Expense Head'], ['key' => 'account', 'label' => 'Account'], ['key' => 'amount', 'label' => 'Amount'], ['key' => 'remarks', 'label' => 'Remarks'], ['key' => 'created_at', 'label' => 'Created At'], ['key' => 'action_by', 'label' => 'Last Action By']];
+        return [['key' => 'id', 'label' => '#'], ['key' => 'expense_head', 'label' => 'Expense Head'], ['key' => 'account', 'label' => 'Account'], ['key' => 'amount', 'label' => 'Amount'], ['key' => 'remarks', 'label' => 'Remarks'], ['key' => 'created_at', 'label' => 'Created At'], ['key' => 'status', 'label' => 'Status'], ['key' => 'action_by', 'label' => 'Last Action By']];
     }
 
     public function expenses()
@@ -103,16 +104,18 @@ new #[Layout('components.layouts.admin')] #[Title('Expense List')] class extends
                 'account_id' => $this->account_id,
                 'amount' => $this->amount,
                 'remarks' => $this->remarks,
+                'status' => TransactionStatus::PENDING,
+                'created_by' => auth()->user()->id,
             ]);
-            TransactionService::recordTransaction([
-                'source_type' => Expense::class,
-                'source_id' => $expense->id,
-                'date' => now(),
-                'amount' => $this->amount,
-                'debit_account_id' => $this->expenses_head_id,
-                'credit_account_id' => $this->account_id,
-                'description' => 'Expense Transaction Information Record',
-            ]);
+            // TransactionService::recordTransaction([
+            //     'source_type' => Expense::class,
+            //     'source_id' => $expense->id,
+            //     'date' => now(),
+            //     'amount' => $this->amount,
+            //     'debit_account_id' => $this->expenses_head_id,
+            //     'credit_account_id' => $this->account_id,
+            //     'description' => 'Expense Transaction Information Record',
+            // ]);
             $this->createModal = false;
             $this->success('Expense Added Successfully');
         } catch (\Throwable $th) {
@@ -159,8 +162,7 @@ new #[Layout('components.layouts.admin')] #[Title('Expense List')] class extends
     <x-header title="Expense List" size="text-xl" separator class="bg-white px-2 pt-2">
         <x-slot:actions>
             <x-input placeholder="Search..." wire:model.live="search" icon="o-bolt" inline />
-            <x-select placeholder="Select Expense" wire:model.live="expense_for_search" :options="$expenseHeads"
-                option-label="name" option-value="id" />
+            <x-select placeholder="Select Expense" wire:model.live="expense_for_search" :options="$expenseHeads" option-label="name" option-value="id" />
             <x-select placeholder="Select Account" wire:model.live="account_for_search" :options="$accounts" />
             <x-datetime wire:model.live="date_for_search" />
             <x-button label="Add Expense" @click="$wire.createModal = true" icon="o-plus" class="btn-primary btn-sm" />
@@ -178,6 +180,9 @@ new #[Layout('components.layouts.admin')] #[Title('Expense List')] class extends
             @scope('cell_account', $expense)
                 {{ $expense->account->name ?? 'N/A' }}
             @endscope
+            @scope('cell_status', $expense)
+                {{ $expense->status->label() ?? 'N/A' }}
+            @endscope
             @scope('cell_action_by', $expense)
                 {{ $expense->actionBy->name ?? 'N/A' }}
             @endscope
@@ -192,11 +197,10 @@ new #[Layout('components.layouts.admin')] #[Title('Expense List')] class extends
             @endscope
             @scope('actions', $expense)
                 <div class="flex items-center gap-1">
-                    <x-button icon="o-trash" wire:click="delete({{ $expense['id'] }})" wire:confirm="Are you sure?"
-                        class="btn-error btn-action" spinner="delete({{ $expense['id'] }})" />
+                    <x-button icon="o-trash" wire:click="delete({{ $expense['id'] }})" wire:confirm="Are you sure?" class="btn-error btn-action"
+                        spinner="delete({{ $expense['id'] }})" />
 
-                    <x-button icon="s-pencil-square" class="btn-neutral btn-action"
-                        wire:click="edit({{ $expense['id'] }})" />
+                    <x-button icon="s-pencil-square" class="btn-neutral btn-action" wire:click="edit({{ $expense['id'] }})" />
                 </div>
             @endscope
         </x-table>
@@ -205,10 +209,10 @@ new #[Layout('components.layouts.admin')] #[Title('Expense List')] class extends
 
     <x-modal wire:model="createModal" title="Add New Expense" separator>
         <x-form wire:submit="storeExpense">
-            <x-choices label="Expense Head" wire:model="expenses_head_id" placeholder="Select Expense" single required
-                option-label="name" option-value="id" :options="$expenseHeads" />
-            <x-choices label="Accounts" wire:model="account_id" placeholder="Select Account" single required
-                option-label="name" option-value="id" :options="$accounts" />
+            <x-choices label="Expense Head" wire:model="expenses_head_id" placeholder="Select Expense" single required option-label="name"
+                option-value="id" :options="$expenseHeads" />
+            <x-choices label="Accounts" wire:model="account_id" placeholder="Select Account" single required option-label="name" option-value="id"
+                :options="$accounts" />
             <x-input type="number" label="Amount" wire:model="amount" placeholder="Amount" required />
             <x-input label="Remarks" wire:model="remarks" placeholder="Remarks" />
             <x-slot:actions>
@@ -220,10 +224,10 @@ new #[Layout('components.layouts.admin')] #[Title('Expense List')] class extends
 
     <x-modal wire:model="editModal" title="Update Expense" separator>
         <x-form wire:submit="updateExpense">
-            <x-choices label="Expense Head" wire:model="expenses_head_id" placeholder="Select Expense" single required
-                option-label="name" option-value="id" :options="$expenseHeads" />
-            <x-choices label="Accounts" wire:model="account_id" placeholder="Select Account" single required
-                option-label="name" option-value="id" :options="$accounts" />
+            <x-choices label="Expense Head" wire:model="expenses_head_id" placeholder="Select Expense" single required option-label="name"
+                option-value="id" :options="$expenseHeads" />
+            <x-choices label="Accounts" wire:model="account_id" placeholder="Select Account" single required option-label="name" option-value="id"
+                :options="$accounts" />
             <x-input type="number" label="Amount" wire:model="amount" placeholder="Amount" required />
             <x-input label="Remarks" wire:model="remarks" placeholder="Remarks" />
             <x-slot:actions>
