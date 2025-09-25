@@ -34,7 +34,7 @@ new #[Layout('components.layouts.admin')] #[Title('Add New Travel Product')] cla
     #[Rule('nullable')]
     public $offer_price;
 
-    #[Rule('nullable')]
+    #[Rule('nullable|image|max:1024')]
     public $thumbnail;
 
     #[Rule('required')]
@@ -110,8 +110,7 @@ new #[Layout('components.layouts.admin')] #[Title('Add New Travel Product')] cla
     @endpush
     <x-header title="Update Product - {{ $product->title }}" size="text-xl" separator class="bg-white px-2 pt-2">
         <x-slot:actions>
-            <x-button label="Travel Product List" icon="fas.arrow-left" link="/admin/travel-product/list"
-                class="btn-primary btn-sm" />
+            <x-button label="Travel Product List" icon="fas.arrow-left" link="/admin/travel-product/list" class="btn-primary btn-sm" />
         </x-slot:actions>
     </x-header>
     <x-form wire:submit="updateTravelProduct" x-cloak>
@@ -119,15 +118,12 @@ new #[Layout('components.layouts.admin')] #[Title('Add New Travel Product')] cla
             <div class="col-span-2">
                 <x-card>
                     <x-devider title="Travel Product Information" />
-                    <x-input label="Travel Product Title" class="mb-4" wire:model="title"
-                        placeholder="Travel Product Title" />
+                    <x-input label="Travel Product Title" class="mb-4" wire:model="title" placeholder="Travel Product Title" />
                     <div class="grid grid-cols-2 gap-2">
                         <x-input label="SKU" class="mb-4" wire:model="sku" placeholder="SKU" />
                         <x-input label="Brand" class="mb-4" wire:model="brand" placeholder="Brand" />
-                        <x-input label="Regular Price" class="mb-4" wire:model="regular_price"
-                            placeholder="Regular Price" type="number" />
-                        <x-input label="Offer Price" class="mb-4" wire:model="offer_price" placeholder="Offer Price"
-                            type="number" />
+                        <x-input label="Regular Price" class="mb-4" wire:model="regular_price" placeholder="Regular Price" type="number" />
+                        <x-input label="Offer Price" class="mb-4" wire:model="offer_price" placeholder="Offer Price" type="number" />
                     </div>
                 </x-card>
                 <x-card class="mt-4">
@@ -141,22 +137,18 @@ new #[Layout('components.layouts.admin')] #[Title('Add New Travel Product')] cla
             <x-card class="col-span-1">
                 <x-devider title="Additional Information" />
                 <div class="grid grid-cols-2 gap-2">
-                    <x-input label="Stock Quantity" class="mb-4" wire:model="stock" placeholder="Stock Quantity"
-                        type="number" required />
-                    <x-choices label="Product Status" wire:model="status" :options="$product_status" single
-                        placeholder="Select Status" required />
+                    <x-input label="Stock Quantity" class="mb-4" wire:model="stock" placeholder="Stock Quantity" type="number" required />
+                    <x-choices label="Product Status" wire:model="status" :options="$product_status" single placeholder="Select Status" required />
                 </div>
                 <div class="mb-4">
                     <x-checkbox label="Is Featured?" wire:model="is_featured" class="w-4 h-4" />
                 </div>
                 <x-file label="Thumbnail" wire:model="thumbnail" accept="image/png, image/jpeg" class="border-b-2">
-                    <img src="{{ $product->thumbnail_link ?? asset('/empty-product.png') }}"
-                        class="h-20 rounded-lg mb-2">
+                    <img src="{{ $product->thumbnail_link ?? asset('/empty-product.png') }}" class="h-20 rounded-lg mb-2">
                 </x-file>
                 <x-slot:actions>
                     <x-button label="Product List" link="/admin/travel-product/list" class="btn-sm" />
-                    <x-button type="submit" label="Update Product" class="btn-primary btn-sm"
-                        spinner="updateTravelProduct" />
+                    <x-button type="submit" label="Update Product" class="btn-primary btn-sm" spinner="updateTravelProduct" />
                 </x-slot:actions>
 
             </x-card>
