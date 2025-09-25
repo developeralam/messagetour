@@ -26,6 +26,7 @@ class Income extends Model
         'amount',
         'reference',
         'remarks',
+        'payment_slip',
         'status',
         'created_by',
         'action_by',

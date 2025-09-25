@@ -270,6 +270,7 @@ Route::middleware(Partner::class)->prefix('partner')->name('.partner')->group(fu
     Volt::route('/wallet', 'partner.wallet')->name('wallet');
     Volt::route('/deposit-request', 'partner.depositrequest')->name('deposit.request');
     Volt::route('/payment-requests', 'partner.agent-payment-request')->name('payment.requests');
+    Volt::route('/manual-payment', 'agent.manual-payment')->name('manual.payment');
     Volt::route('/profile', 'partner.profile')->name('profile');
     Volt::route('/order/list', 'partner.orderlist')->name('orderlist');
     Volt::route('/booking/list', 'partner.bookinglist')->name('bookinglist');

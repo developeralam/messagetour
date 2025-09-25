@@ -131,6 +131,10 @@
                 <x-menu-item title="Deposit Request" icon="fas.money-bill-transfer" link="/partner/deposit-request" />
                 <x-menu-separator />
 
+                {{-- Manual Payment --}}
+                <x-menu-item title="Manual Payment" icon="fas.credit-card" link="/partner/manual-payment" />
+                <x-menu-separator />
+
                 {{-- Wallet --}}
                 <x-menu-item title="Wallet Withdraw" icon="fas.money-bill-transfer" link="/partner/wallet" />
                 <x-menu-separator />

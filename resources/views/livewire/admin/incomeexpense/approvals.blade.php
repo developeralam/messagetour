@@ -33,7 +33,7 @@ new #[Layout('components.layouts.admin')] #[Title('Income Expense Approvals')] c
     public function headers(): array
     {
         if ($this->selectedTab === 'income') {
-            return [['key' => 'id', 'label' => '#'], ['key' => 'amount', 'label' => 'Amount'], ['key' => 'customer_agent', 'label' => 'Customer/Agent'], ['key' => 'account', 'label' => 'Account'], ['key' => 'reference', 'label' => 'Reference'], ['key' => 'remarks', 'label' => 'Remarks'], ['key' => 'created_by', 'label' => 'Created By'], ['key' => 'created_at', 'label' => 'Created At'], ['key' => 'actions', 'label' => 'Actions']];
+            return [['key' => 'id', 'label' => '#'], ['key' => 'amount', 'label' => 'Amount'], ['key' => 'customer_agent', 'label' => 'Customer/Agent'], ['key' => 'account', 'label' => 'Account'], ['key' => 'reference', 'label' => 'Reference'], ['key' => 'remarks', 'label' => 'Remarks'], ['key' => 'payment_slip', 'label' => 'Payment Slip'], ['key' => 'created_by', 'label' => 'Created By'], ['key' => 'created_at', 'label' => 'Created At'], ['key' => 'actions', 'label' => 'Actions']];
         } else {
             return [['key' => 'id', 'label' => '#'], ['key' => 'amount', 'label' => 'Amount'], ['key' => 'expense_head', 'label' => 'Expense Head'], ['key' => 'account', 'label' => 'Account'], ['key' => 'remarks', 'label' => 'Remarks'], ['key' => 'created_by', 'label' => 'Created By'], ['key' => 'created_at', 'label' => 'Created At'], ['key' => 'actions', 'label' => 'Actions']];
         }
@@ -209,6 +209,21 @@ new #[Layout('components.layouts.admin')] #[Title('Income Expense Approvals')] c
                 @endscope
                 @scope('cell_remarks', $income)
                     {{ $income->remarks ?? 'N/A' }}
+                @endscope
+                @scope('cell_payment_slip', $income)
+                    @if ($income->payment_slip)
+                        <div class="flex items-center space-x-2">
+                            <img src="{{ asset('storage/' . $income->payment_slip) }}" alt="Payment Slip"
+                                class="w-12 h-12 object-cover rounded-lg border border-gray-300 cursor-pointer hover:scale-110 transition-transform"
+                                onclick="window.open('{{ asset('storage/' . $income->payment_slip) }}', '_blank')">
+                            <button onclick="window.open('{{ asset('storage/' . $income->payment_slip) }}', '_blank')"
+                                class="text-blue-600 hover:text-blue-800 text-sm">
+                                View
+                            </button>
+                        </div>
+                    @else
+                        <span class="text-gray-500">N/A</span>
+                    @endif
                 @endscope
                 @scope('cell_created_by', $income)
                     {{ $income->createdBy->name ?? 'N/A' }}

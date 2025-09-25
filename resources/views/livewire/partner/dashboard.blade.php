@@ -558,6 +558,14 @@ new #[Layout('components.layouts.partner')] #[Title('Partner Dashboard')] class 
                     <span class="text-xs font-medium text-gray-900 text-center">Deposit</span>
                 </a>
 
+                <a href="/partner/manual-payment"
+                    class="group flex flex-col items-center p-3 bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg hover:from-teal-100 hover:to-teal-200 transition-all duration-300 transform hover:scale-105">
+                    <div class="w-10 h-10 bg-teal-500 rounded-lg flex items-center justify-center mb-2 group-hover:bg-teal-600 transition-colors">
+                        <x-fas-credit-card class="w-4 h-4 text-white" />
+                    </div>
+                    <span class="text-xs font-medium text-gray-900 text-center">Manual Payment</span>
+                </a>
+
                 <a href="/partner/markup"
                     class="group flex flex-col items-center p-3 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg hover:from-orange-100 hover:to-orange-200 transition-all duration-300 transform hover:scale-105">
                     <div
