@@ -442,17 +442,17 @@ new #[Layout('components.layouts.app')] #[Title('Gear Booking')] class extends C
             }
 
             if ($order->payment_gateway_id == 4) {
-                // Create payment request for Cash on Delivery
-                $bookingAgent = auth()->user()->agent;
-                if ($bookingAgent) {
-                    \App\Models\AgentPaymentRequest::create([
-                        'agent_id' => $bookingAgent->id,
-                        'order_id' => $order->id,
-                        'amount' => $order->total_amount,
-                        'status' => 'pending',
-                        'notes' => 'Cash on Delivery payment request',
-                    ]);
-                }
+                // Create payment request for Cash on Delivery - for the product creator agent
+                // $gearCreator = User::find($this->gear->created_by);
+                // if ($gearCreator && $gearCreator->type == UserType::Agent && $gearCreator->agent) {
+                //     \App\Models\AgentPaymentRequest::create([
+                //         'agent_id' => $gearCreator->agent->id,
+                //         'order_id' => $order->id,
+                //         'amount' => $order->total_amount,
+                //         'status' => 'pending',
+                //         'notes' => 'Cash on Delivery payment request for travel product: ' . $this->gear->title,
+                //     ]);
+                // }
 
                 $this->redirectRoute('order.invoice', ['order' => $order->id]);
             }
