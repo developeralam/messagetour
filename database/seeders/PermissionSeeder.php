@@ -41,7 +41,6 @@ class PermissionSeeder extends Seeder
             'voucher.create',
             'voucher.edit',
             'voucher.delete',
-            'other-transactions',
             'chart-of-account',
             'reports',
             'trial-balance',
