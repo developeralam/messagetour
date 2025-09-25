@@ -56,20 +56,41 @@ class Agent extends Model
     public function getBusinessLogoLinkAttribute()
     {
         if ($this->business_logo) {
-            return Storage::disk('public')->url('/' . $this->business_logo);
+            // Direct file path for better compatibility
+            $filePath = public_path('storage/' . $this->business_logo);
+            if (file_exists($filePath)) {
+                return url('storage/' . $this->business_logo);
+            }
+            // Fallback to Storage URL
+            return Storage::disk('public')->url($this->business_logo);
         }
+        return asset('empty-user.jpg');
     }
     public function getTradeLicenceLinkAttribute()
     {
         if ($this->trade_licence) {
-            return Storage::disk('public')->url('/' . $this->trade_licence);
+            // Direct file path for better compatibility
+            $filePath = public_path('storage/' . $this->trade_licence);
+            if (file_exists($filePath)) {
+                return url('storage/' . $this->trade_licence);
+            }
+            // Fallback to Storage URL
+            return Storage::disk('public')->url($this->trade_licence);
         }
+        return null;
     }
     public function getPropiterImageLinkAttribute()
     {
         if ($this->agent_image) {
-            return Storage::disk('public')->url('/' . $this->agent_image);
+            // Direct file path for better compatibility
+            $filePath = public_path('storage/' . $this->agent_image);
+            if (file_exists($filePath)) {
+                return url('storage/' . $this->agent_image);
+            }
+            // Fallback to Storage URL
+            return Storage::disk('public')->url($this->agent_image);
         }
+        return asset('empty-user.jpg');
     }
     public function country(): BelongsTo
     {

@@ -54,9 +54,15 @@ class Customer extends Model
     public function getImageLinkAttribute()
     {
         if ($this->image) {
+            // Direct file path for better compatibility
+            $filePath = public_path('storage/' . $this->image);
+            if (file_exists($filePath)) {
+                return url('storage/' . $this->image);
+            }
+            // Fallback to Storage URL
             return Storage::disk('public')->url($this->image);
         }
-        return null;
+        return asset('empty-user.jpg');
     }
 
     public function actionBy(): BelongsTo
