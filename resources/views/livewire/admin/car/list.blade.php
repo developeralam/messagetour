@@ -20,7 +20,7 @@ new #[Layout('components.layouts.admin')] #[Title('Vehicle List')] class extends
         $this->headers = $this->headers();
     }
 
-    public function delete(Vehicle $car): void
+    public function delete(Car $car): void
     {
         try {
             $car->update([
@@ -73,8 +73,7 @@ new #[Layout('components.layouts.admin')] #[Title('Vehicle List')] class extends
             <x-input icon="o-bolt" wire:model.live="search" placeholder="Search..." />
         </x-slot:middle>
         <x-slot:actions>
-            <x-button label="Add Vehicle" icon="o-plus" no-wire-navigate link="/admin/vehicle/create"
-                class="btn-primary btn-sm" />
+            <x-button label="Add Vehicle" icon="o-plus" no-wire-navigate link="/admin/vehicle/create" class="btn-primary btn-sm" />
         </x-slot:actions>
     </x-header>
     <x-card>
@@ -116,11 +115,10 @@ new #[Layout('components.layouts.admin')] #[Title('Vehicle List')] class extends
             @endscope
             @scope('actions', $car)
                 <div class="flex items-center gap-1">
-                    <x-button icon="o-trash" wire:click="delete({{ $car['id'] }})" wire:confirm="Are you sure?"
-                        class="btn-error btn-action" spinner="delete({{ $car['id'] }})" />
+                    <x-button icon="o-trash" wire:click="delete({{ $car['id'] }})" wire:confirm="Are you sure?" class="btn-error btn-action"
+                        spinner="delete({{ $car['id'] }})" />
 
-                    <x-button icon="s-pencil-square" no-wire-navigate link="/admin/vehicle/{{ $car['id'] }}/edit"
-                        class="btn-neutral btn-action" />
+                    <x-button icon="s-pencil-square" no-wire-navigate link="/admin/vehicle/{{ $car['id'] }}/edit" class="btn-neutral btn-action" />
                 </div>
             @endscope
         </x-table>

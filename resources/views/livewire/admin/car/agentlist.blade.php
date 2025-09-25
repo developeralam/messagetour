@@ -21,7 +21,7 @@ new #[Layout('components.layouts.admin')] #[Title('Agent Vehicle List')] class e
         $this->headers = $this->headers();
     }
 
-    public function delete(Vehicle $car): void
+    public function delete(Car $car): void
     {
         try {
             $car->update([
@@ -123,8 +123,8 @@ new #[Layout('components.layouts.admin')] #[Title('Agent Vehicle List')] class e
             @endscope
             @scope('actions', $car)
                 <div class="flex items-center gap-1">
-                    <x-button icon="o-trash" wire:click="delete({{ $car['id'] }})" wire:confirm="Are you sure?"
-                        class="btn-error btn-action" spinner="delete({{ $car['id'] }})" />
+                    <x-button icon="o-trash" wire:click="delete({{ $car['id'] }})" wire:confirm="Are you sure?" class="btn-error btn-action"
+                        spinner="delete({{ $car['id'] }})" />
                 </div>
             @endscope
         </x-table>
