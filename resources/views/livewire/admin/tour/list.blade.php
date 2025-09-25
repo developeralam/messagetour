@@ -70,8 +70,7 @@ new #[Layout('components.layouts.admin')] #[Title('Tour List')] class extends Co
             <x-input icon="o-bolt" wire:model.live="search" placeholder="Search..." />
         </x-slot:middle>
         <x-slot:actions>
-            <x-button label="Add Tour" icon="o-plus" no-wire-navigate link="/admin/tour/create"
-                class="btn-primary btn-sm" />
+            <x-button label="Add Tour" icon="o-plus" no-wire-navigate link="/admin/tour/create" class="btn-primary btn-sm" />
         </x-slot:actions>
     </x-header>
     <x-card>
@@ -96,18 +95,15 @@ new #[Layout('components.layouts.admin')] #[Title('Tour List')] class extends Co
                 {{ optional($tour->validity)?->format('d M, Y') ?? '' }}
             @endscope
             @scope('cell_thumbnail', $tour)
-                <x-avatar image="{{ $tour->thumbnail_link ?? '/empty-product.png' }}" class="!w-10" />
+                <x-avatar image="{{ $tour->thumbnail_link ?? 'empty-product.png' }}" class="!w-10" />
             @endscope
             @scope('cell_status', $tour)
                 @if ($tour->status == \App\Enum\TourStatus::Active)
-                    <x-badge value="{{ $tour->status->label() }}"
-                        class="bg-green-100 text-green-700 p-3 text-xs font-semibold" />
+                    <x-badge value="{{ $tour->status->label() }}" class="bg-green-100 text-green-700 p-3 text-xs font-semibold" />
                 @elseif ($tour->status == \App\Enum\TourStatus::Pending)
-                    <x-badge value="{{ $tour->status->label() }}"
-                        class="bg-yellow-100 text-yellow-700 p-3 text-xs font-semibold" />
+                    <x-badge value="{{ $tour->status->label() }}" class="bg-yellow-100 text-yellow-700 p-3 text-xs font-semibold" />
                 @elseif ($tour->status == \App\Enum\TourStatus::Inactive)
-                    <x-badge value="{{ $tour->status->label() }}"
-                        class="bg-red-100 text-red-700 p-3 text-xs font-semibold" />
+                    <x-badge value="{{ $tour->status->label() }}" class="bg-red-100 text-red-700 p-3 text-xs font-semibold" />
                 @endif
             @endscope
             @scope('cell_type', $tour)
@@ -119,14 +115,12 @@ new #[Layout('components.layouts.admin')] #[Title('Tour List')] class extends Co
             @scope('actions', $tour)
                 <div class="flex items-center gap-1">
                     @if ($tour->status == \App\Enum\TourStatus::Pending)
-                        <x-button icon="fas.check" wire:click="approve({{ $tour->id }})"
-                            wire:confirm="Are you sure approve this tour?" class="btn-primary btn-action text-white"
-                            spinner="approve({{ $tour['id'] }})" />
+                        <x-button icon="fas.check" wire:click="approve({{ $tour->id }})" wire:confirm="Are you sure approve this tour?"
+                            class="btn-primary btn-action text-white" spinner="approve({{ $tour['id'] }})" />
                     @endif
-                    <x-button icon="o-trash" wire:click="delete({{ $tour['id'] }})" wire:confirm="Are you sure?"
-                        class="btn-error btn-action" spinner="delete({{ $tour['id'] }})" />
-                    <x-button icon="s-pencil-square" no-wire-navigate link="/admin/tour/{{ $tour['id'] }}/edit"
-                        class="btn-neutral btn-action" />
+                    <x-button icon="o-trash" wire:click="delete({{ $tour['id'] }})" wire:confirm="Are you sure?" class="btn-error btn-action"
+                        spinner="delete({{ $tour['id'] }})" />
+                    <x-button icon="s-pencil-square" no-wire-navigate link="/admin/tour/{{ $tour['id'] }}/edit" class="btn-neutral btn-action" />
                 </div>
             @endscope
         </x-table>
