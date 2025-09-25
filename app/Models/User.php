@@ -72,4 +72,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Order::class);
     }
+
+    public function corporateQueries(): HasMany
+    {
+        return $this->hasMany(CorporateQuery::class);
+    }
 }

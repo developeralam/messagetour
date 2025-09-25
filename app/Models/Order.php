@@ -14,6 +14,7 @@ use App\Models\PaymentGateway;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Order extends Model
@@ -93,5 +94,30 @@ class Order extends Model
     public function paymentgateway(): BelongsTo
     {
         return $this->belongsTo(PaymentGateway::class, "payment_gateway_id", "id");
+    }
+
+    public function hotelRoomBookings(): HasMany
+    {
+        return $this->hasMany(HotelRoomBooking::class);
+    }
+
+    public function tourBookings(): HasMany
+    {
+        return $this->hasMany(TourBooking::class);
+    }
+
+    public function carBookings(): HasMany
+    {
+        return $this->hasMany(CarBooking::class);
+    }
+
+    public function visaBookings(): HasMany
+    {
+        return $this->hasMany(VisaBooking::class);
+    }
+
+    public function travelProductBookings(): HasMany
+    {
+        return $this->hasMany(TravelProductBooking::class);
     }
 }

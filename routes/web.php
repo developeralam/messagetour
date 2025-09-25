@@ -325,6 +325,11 @@ Route::middleware(Customer::class)->name('.customer')->group(function () {
     });
 
     Volt::route('/dashboard', 'customer.dashboard')->name('dashboard');
+    Volt::route('/bookings', 'frontend.customer-bookings')->name('bookings');
+    Volt::route('/profile', 'customer.profile')->name('profile');
+    Volt::route('/change-password', 'customer.change-password')->name('change-password');
+
+    // Legacy routes for backward compatibility
     Volt::route('/my-orders', 'customer.orders')->name('order');
     Volt::route('/my-group-flight-booking', 'customer.booking.group-flight')->name('group.flight');
     Volt::route('/my-hotel-booking', 'customer.booking.hotel')->name('hotel.booking');
@@ -333,6 +338,5 @@ Route::middleware(Customer::class)->name('.customer')->group(function () {
     Volt::route('/my-corporate-query/{query}/edit', 'customer.corporate-query.edit')->name('corporate.query.edit');
     Volt::route('/my-visa-booking', 'customer.booking.visa')->name('visa.booking');
     Volt::route('/my-tour-booking', 'customer.booking.tour')->name('tour.booking');
-    Volt::route('/profile', 'customer.profile')->name('profile');
     Route::get('/my-corporate-query/{query}', [PDFController::class, 'customer_corporate_query']);
 });
