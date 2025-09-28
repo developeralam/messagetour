@@ -40,6 +40,9 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
     public $amount;
 
     #[Rule('nullable')]
+    public $income_date;
+
+    #[Rule('nullable')]
     public $reference;
 
     #[Rule('nullable')]
@@ -79,7 +82,7 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
 
     public function headers(): array
     {
-        return [['key' => 'id', 'label' => '#'], ['key' => 'customer', 'label' => 'Customer'], ['key' => 'agent', 'label' => 'Agent'], ['key' => 'account', 'label' => 'Account'], ['key' => 'amount', 'label' => 'Amount'], ['key' => 'remarks', 'label' => 'Remarks'], ['key' => 'reference', 'label' => 'Reference'], ['key' => 'created_at', 'label' => 'Created At'], ['key' => 'status', 'label' => 'Status'], ['key' => 'action_by', 'label' => 'Last Action By']];
+        return [['key' => 'id', 'label' => '#'], ['key' => 'customer', 'label' => 'Customer'], ['key' => 'agent', 'label' => 'Agent'], ['key' => 'account', 'label' => 'Account'], ['key' => 'amount', 'label' => 'Amount'], ['key' => 'income_date', 'label' => 'Income Date'], ['key' => 'remarks', 'label' => 'Remarks'], ['key' => 'reference', 'label' => 'Reference'], ['key' => 'created_at', 'label' => 'Created At'], ['key' => 'status', 'label' => 'Status'], ['key' => 'action_by', 'label' => 'Last Action By']];
     }
 
     public function incomes()
@@ -119,6 +122,7 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
                 'agent_id' => $this->agent_id,
                 'account_id' => $this->account_id,
                 'amount' => $this->amount,
+                'income_date' => $this->income_date,
                 'reference' => $this->reference,
                 'remarks' => $this->remarks,
                 'status' => TransactionStatus::PENDING,
@@ -147,6 +151,7 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
         $this->agent_id = $income->agent_id;
         $this->account_id = $income->account_id;
         $this->amount = $income->amount;
+        $this->income_date = $income->income_date->format('Y-m-d');
         $this->reference = $income->reference;
         $this->remarks = $income->remarks;
         $this->editModal = true;
@@ -160,6 +165,7 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
                 'agent_id' => $this->agent_id,
                 'account_id' => $this->account_id,
                 'amount' => $this->amount,
+                'income_date' => $this->income_date,
                 'reference' => $this->reference,
                 'remarks' => $this->remarks,
                 'action_by' => auth()->user()->id,
@@ -210,6 +216,9 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
             @scope('cell_action_by', $income)
                 {{ $income->actionBy->name ?? 'N/A' }}
             @endscope
+            @scope('cell_income_date', $income)
+                {{ $income->income_date->format('d M, Y') ?? 'N/A' }}
+            @endscope
             @scope('cell_remarks', $income)
                 {{ $income->remarks ?? 'N/A' }}
             @endscope
@@ -246,6 +255,7 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
             <x-choices label="Accounts" wire:model="account_id" placeholder="Select Account" single required option-label="name" option-value="id"
                 :options="$accounts" />
             <x-input type="number" label="Amount" wire:model="amount" placeholder="Amount" required />
+            <x-datetime wire:model="income_date" label="Income Date" />
             <x-input label="Reference" wire:model="reference" placeholder="Reference" />
             <x-input label="Remarks" wire:model="remarks" placeholder="Remarks" />
             <x-slot:actions>
@@ -267,6 +277,7 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
             <x-choices label="Accounts" wire:model="account_id" placeholder="Select Account" single required option-label="name" option-value="id"
                 :options="$accounts" />
             <x-input type="number" label="Amount" wire:model="amount" placeholder="Amount" required />
+            <x-datetime wire:model="income_date" label="Income Date" />
             <x-input label="Reference" wire:model="reference" placeholder="Reference" />
             <x-input label="Remarks" wire:model="remarks" placeholder="Remarks" />
             <x-slot:actions>

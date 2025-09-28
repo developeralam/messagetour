@@ -36,7 +36,7 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class ex
     #[Rule('required')]
     public $type;
 
-    #[Rule('required')]
+    #[Rule('nullable')]
     public $opening_balance;
 
     public $from_date;
@@ -71,7 +71,7 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class ex
                 'name' => $this->name,
                 'parent_id' => $this->parent_id,
                 'type' => $this->type,
-                'opening_balance' => $this->opening_balance,
+                'opening_balance' => $this->opening_balance ?? 0,
             ]);
 
             // Record opening balance transaction with proper debit/credit logic
@@ -81,6 +81,7 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class ex
             $this->success('Chart Of Account Added Successfully');
             $this->createModal = false;
         } catch (\Throwable $th) {
+            dd($th->getMessage());
             $this->createModal = false;
             $this->error(env('APP_DEBUG', false) ? $th->getMessage() : 'Something went wrong');
         }
@@ -93,7 +94,7 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class ex
         $this->name = $account->name;
         $this->parent_id = $account->parent_id;
         $this->type = $account->type;
-        $this->opening_balance = $account->opening_balance;
+        $this->opening_balance = $account->opening_balance ?? 0;
         $this->editModal = true;
     }
 
@@ -107,7 +108,7 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class ex
                 'name' => $this->name,
                 'parent_id' => $this->parent_id,
                 'type' => $this->type,
-                'opening_balance' => $this->opening_balance,
+                'opening_balance' => $this->opening_balance ?? 0,
             ]);
 
             // If opening balance changed, record the adjustment transaction
@@ -273,7 +274,7 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class ex
             <x-choices label="Type" wire:model.live="type" :options="$types" single required placeholder="Select Type" />
             <x-choices label="Category" wire:model="parent_id" :options="$categories" single required placeholder="Select Category" />
             <x-input label="Account Name" wire:model="name" placeholder="Category Name" required />
-            <x-input label="Opening Balance" wire:model="opening_balance" placeholder="Opening Balance" required />
+            <x-input type="number" label="Opening Balance" wire:model="opening_balance" placeholder="Opening Balance" />
             <x-slot:actions>
                 <x-button label="Cancel" class="btn-sm" @click="$wire.createModal = false" />
                 <x-button type="submit" label="Add Account" class="btn-sm btn-primary" spinner="storeChartOfAccount" />
@@ -285,7 +286,7 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class ex
             <x-choices label="Type" wire:model.live="type" :options="$types" single required placeholder="Select Type" />
             <x-choices label="Category" wire:model="parent_id" :options="$categories" single required placeholder="Select Category" />
             <x-input label="Account Name" wire:model="name" placeholder="Category Name" required />
-            <x-input label="Opening Balance" wire:model="opening_balance" placeholder="Opening Balance" required />
+            <x-input type="number" label="Opening Balance" wire:model="opening_balance" placeholder="Opening Balance" />
             <x-slot:actions>
                 <x-button label="Cancel" class="btn-sm" @click="$wire.editModal = false" />
                 <x-button type="submit" label="Add Account" class="btn-sm btn-primary" spinner="updateChartOfAccount" />

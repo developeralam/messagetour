@@ -34,6 +34,9 @@ new #[Layout('components.layouts.admin')] #[Title('Expense List')] class extends
     public $amount;
 
     #[Rule('nullable')]
+    public $expense_date;
+
+    #[Rule('nullable')]
     public $remarks;
 
     public bool $createModal = false;
@@ -70,7 +73,7 @@ new #[Layout('components.layouts.admin')] #[Title('Expense List')] class extends
 
     public function headers(): array
     {
-        return [['key' => 'id', 'label' => '#'], ['key' => 'expense_head', 'label' => 'Expense Head'], ['key' => 'account', 'label' => 'Account'], ['key' => 'amount', 'label' => 'Amount'], ['key' => 'remarks', 'label' => 'Remarks'], ['key' => 'created_at', 'label' => 'Created At'], ['key' => 'status', 'label' => 'Status'], ['key' => 'action_by', 'label' => 'Last Action By']];
+        return [['key' => 'id', 'label' => '#'], ['key' => 'expense_head', 'label' => 'Expense Head'], ['key' => 'account', 'label' => 'Account'], ['key' => 'amount', 'label' => 'Amount'], ['key' => 'expense_date', 'label' => 'Expense Date'], ['key' => 'remarks', 'label' => 'Remarks'], ['key' => 'created_at', 'label' => 'Created At'], ['key' => 'status', 'label' => 'Status'], ['key' => 'action_by', 'label' => 'Last Action By']];
     }
 
     public function expenses()
@@ -103,6 +106,7 @@ new #[Layout('components.layouts.admin')] #[Title('Expense List')] class extends
                 'expenses_head_id' => $this->expenses_head_id,
                 'account_id' => $this->account_id,
                 'amount' => $this->amount,
+                'expense_date' => $this->expense_date,
                 'remarks' => $this->remarks,
                 'status' => TransactionStatus::PENDING,
                 'created_by' => auth()->user()->id,
@@ -129,6 +133,7 @@ new #[Layout('components.layouts.admin')] #[Title('Expense List')] class extends
         $this->expenses_head_id = $expense->expenses_head_id;
         $this->account_id = $expense->account_id;
         $this->amount = $expense->amount;
+        $this->expense_date = $expense->expense_date->format('Y-m-d');
         $this->remarks = $expense->remarks ?? null;
         $this->editModal = true;
     }
@@ -140,6 +145,7 @@ new #[Layout('components.layouts.admin')] #[Title('Expense List')] class extends
                 'expenses_head_id' => $this->expenses_head_id,
                 'account_id' => $this->account_id,
                 'amount' => $this->amount,
+                'expense_date' => $this->expense_date,
                 'remarks' => $this->remarks ?? null,
                 'action_by' => auth()->user()->id,
             ]);
@@ -185,6 +191,9 @@ new #[Layout('components.layouts.admin')] #[Title('Expense List')] class extends
             @endscope
             @scope('cell_action_by', $expense)
                 {{ $expense->actionBy->name ?? 'N/A' }}
+            @endscope
+            @scope('cell_expense_date', $expense)
+                {{ $expense->expense_date->format('d M, Y') ?? 'N/A' }}
             @endscope
             @scope('cell_remarks', $expense)
                 {{ $expense->remarks ?? 'N/A' }}

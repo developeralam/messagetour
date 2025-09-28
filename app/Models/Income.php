@@ -24,6 +24,7 @@ class Income extends Model
         'agent_id',
         'account_id',
         'amount',
+        'income_date',
         'reference',
         'remarks',
         'payment_slip',
@@ -34,6 +35,7 @@ class Income extends Model
 
     protected $casts = [
         'status' => TransactionStatus::class,
+        'income_date' => 'date',
     ];
 
     /**

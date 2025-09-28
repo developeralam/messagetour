@@ -18,6 +18,7 @@ class Expense extends Model
     protected $fillable = [
         'expenses_head_id',
         'amount',
+        'expense_date',
         'account_id',
         'remarks',
         'status',
@@ -27,6 +28,7 @@ class Expense extends Model
 
     protected $casts = [
         'status' => TransactionStatus::class,
+        'expense_date' => 'date',
     ];
 
     /**
