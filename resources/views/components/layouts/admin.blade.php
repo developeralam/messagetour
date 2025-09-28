@@ -154,7 +154,7 @@
                     <x-menu-separator />
                 @endcan
 
-                @canany(['agent', 'commission', 'agent-report'])
+                @canany(['agent', 'commission', 'agent-report', 'deposit_request', 'withdraw'])
                     <x-menu-sub title="Agent Management" icon="fas.a" :open="request()->is('admin/agent/*', 'admin/commission/manage', 'admin/agent/sale/report')">
                         @can('agent')
                             <x-menu-item title="Agents" icon="fas.handshake" link="/admin/agent/list" />
@@ -166,6 +166,17 @@
 
                         @can('agent-report')
                             <x-menu-item title="Agent Sales Report" icon="fas.file" link="/admin/agent/sale/report" />
+                        @endcan
+
+                        @can('deposit_request')
+                            {{-- Deposit Request --}}
+                            <x-menu-item title="Deposit Request" icon="fas.money-bill-transfer" link="/admin/deposit-request" />
+                        @endcan
+
+                        @can('withdraw')
+                            {{-- Withdraw --}}
+                            <x-menu-item title="Method" icon="fas.list" link="/admin/withdraw/method" />
+                            <x-menu-item title="Withdraw List" icon="fas.list" link="/admin/withdraw/list" />
                         @endcan
                     </x-menu-sub>
                     <x-menu-separator />
@@ -293,21 +304,6 @@
                         @if (auth()->user()->id == 1)
                             <x-menu-item title="Approvals" icon="fas.list" link="/admin/income-expense/approvals" />
                         @endif
-                    </x-menu-sub>
-                    <x-menu-separator />
-                @endcan
-
-                @can('deposit_request')
-                    {{-- Deposit Request --}}
-                    <x-menu-item title="Deposit Request" icon="fas.money-bill-transfer" link="/admin/deposit-request" />
-                    <x-menu-separator />
-                @endcan
-
-                @can('withdraw')
-                    {{-- Withdraw --}}
-                    <x-menu-sub title="Withdraw" icon="fas.money-bill-transfer" :open="request()->is('admin/withdraw/*')">
-                        <x-menu-item title="Method" icon="fas.list" link="/admin/withdraw/method" />
-                        <x-menu-item title="Withdraw List" icon="fas.list" link="/admin/withdraw/list" />
                     </x-menu-sub>
                     <x-menu-separator />
                 @endcan
