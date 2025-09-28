@@ -181,6 +181,66 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
     {
         return [
             'incomes' => $this->incomes(),
+            'totalIncome' => $this->getTotalIncome(),
+            'incomeStats' => $this->getIncomeStats(),
+        ];
+    }
+
+    /**
+     * Calculate total income amount based on current filters
+     */
+    public function getTotalIncome()
+    {
+        $query = Income::query()
+            ->when($this->customer_for_search, function ($query) {
+                $query->where('customer_id', $this->customer_for_search);
+            })
+            ->when($this->account_for_search, function ($query) {
+                $query->where('account_id', $this->account_for_search);
+            })
+            ->when($this->date_for_search, function ($query) {
+                $query->whereDate('created_at', $this->date_for_search);
+            })
+            ->when($this->search, function ($query) {
+                $query->where(function ($q) {
+                    $q->where('amount', 'like', '%' . $this->search . '%')
+                        ->orWhere('remarks', 'like', '%' . $this->search . '%')
+                        ->orWhere('reference', 'like', '%' . $this->search . '%');
+                });
+            });
+
+        return $query->sum('amount');
+    }
+
+    /**
+     * Get income statistics by status
+     */
+    public function getIncomeStats()
+    {
+        $baseQuery = Income::query()
+            ->when($this->customer_for_search, function ($query) {
+                $query->where('customer_id', $this->customer_for_search);
+            })
+            ->when($this->account_for_search, function ($query) {
+                $query->where('account_id', $this->account_for_search);
+            })
+            ->when($this->date_for_search, function ($query) {
+                $query->whereDate('created_at', $this->date_for_search);
+            })
+            ->when($this->search, function ($query) {
+                $query->where(function ($q) {
+                    $q->where('amount', 'like', '%' . $this->search . '%')
+                        ->orWhere('remarks', 'like', '%' . $this->search . '%')
+                        ->orWhere('reference', 'like', '%' . $this->search . '%');
+                });
+            });
+
+        return [
+            'total' => $baseQuery->sum('amount'),
+            'approved' => (clone $baseQuery)->where('status', TransactionStatus::APPROVED)->sum('amount'),
+            'pending' => (clone $baseQuery)->where('status', TransactionStatus::PENDING)->sum('amount'),
+            'rejected' => (clone $baseQuery)->where('status', TransactionStatus::REJECTED)->sum('amount'),
+            'count' => $baseQuery->count(),
         ];
     }
 }; ?>
@@ -241,6 +301,69 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
             @endscope
         </x-table>
 
+        <!-- Income Summary Statistics -->
+        <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Total Income -->
+            <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-sm font-medium text-blue-600">Total Income</h3>
+                        <p class="text-xs text-blue-500">
+                            @if ($customer_for_search || $account_for_search || $date_for_search || $search)
+                                Filtered
+                            @else
+                                All Records
+                            @endif
+                        </p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-lg font-bold text-blue-800">
+                            BDT {{ number_format($incomeStats['total'], 2) }}
+                        </div>
+                        <div class="text-xs text-blue-600">
+                            {{ $incomeStats['count'] }} record(s)
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Approved Income -->
+            <div class="p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-sm font-medium text-green-600">Approved</h3>
+                        <p class="text-xs text-green-500">Completed Transactions</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-lg font-bold text-green-800">
+                            BDT {{ number_format($incomeStats['approved'], 2) }}
+                        </div>
+                        <div class="text-xs text-green-600">
+                            {{ $incomeStats['approved'] > 0 ? round(($incomeStats['approved'] / $incomeStats['total']) * 100, 1) : 0 }}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rejected Income -->
+            <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-sm font-medium text-red-600">Rejected</h3>
+                        <p class="text-xs text-red-500">Declined Transactions</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-lg font-bold text-red-800">
+                            BDT {{ number_format($incomeStats['rejected'], 2) }}
+                        </div>
+                        <div class="text-xs text-red-600">
+                            {{ $incomeStats['rejected'] > 0 ? round(($incomeStats['rejected'] / $incomeStats['total']) * 100, 1) : 0 }}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </x-card>
 
     <x-modal wire:model="createModal" title="Add New Income" separator>
@@ -274,8 +397,8 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
                 <x-choices label="Agents" wire:model="agent_id" placeholder="Select Agent" single option-label="user.name" option-value="id"
                     :options="$agents" />
             </div>
-            <x-choices label="Accounts" wire:model="account_id" placeholder="Select Account" single required option-label="name" option-value="id"
-                :options="$accounts" />
+            <x-choices label="Accounts" wire:model="account_id" placeholder="Select Account" single required option-label="name"
+                option-value="id" :options="$accounts" />
             <x-input type="number" label="Amount" wire:model="amount" placeholder="Amount" required />
             <x-datetime wire:model="income_date" label="Income Date" />
             <x-input label="Reference" wire:model="reference" placeholder="Reference" />
