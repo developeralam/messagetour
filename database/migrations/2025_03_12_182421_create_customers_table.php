@@ -19,6 +19,7 @@ return new class extends Migration
             $table->foreignId('district_id')->nullable()->constrained('districts');
             $table->string('address')->nullable();
             $table->string('secondary_address')->nullable();
+            $table->decimal('opening_balance', 15, 2)->default(0);
             $table->string('image')->nullable();
             $table->foreignId('action_by')->nullable()->constrained('users');
             $table->softDeletes();

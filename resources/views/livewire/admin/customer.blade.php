@@ -16,8 +16,12 @@ use Livewire\WithFileUploads;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Layout;
 use App\Jobs\SendCustomerMailJob;
+use App\Services\TransactionService;
+use App\Models\ChartOfAccount;
+use App\Models\Transactions;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use App\Traits\InteractsWithImageUploads;
 
 new #[Layout('components.layouts.admin')] #[Title('Customer List')] class extends Component {
@@ -48,6 +52,9 @@ new #[Layout('components.layouts.admin')] #[Title('Customer List')] class extend
 
     #[Rule('nullable')]
     public $secondary_address;
+
+    #[Rule('nullable')]
+    public $opening_balance;
 
     #[Rule('nullable')]
     public $country_id;
@@ -93,29 +100,36 @@ new #[Layout('components.layouts.admin')] #[Title('Customer List')] class extend
         $this->validate();
 
         try {
-            // Store customer image if uploaded
-            // Store image if uploaded, otherwise use an empty string
-            $storedImagePath = $this->image ? $this->optimizeAndStoreImage($this->image, 'public', 'customer', null, null, 75) : '';
+            DB::transaction(function () {
+                // Store customer image if uploaded
+                $storedImagePath = $this->image ? $this->optimizeAndStoreImage($this->image, 'public', 'customer', null, null, 75) : '';
 
-            // Create a new User record
-            $user = User::create([
-                'name' => $this->name,
-                'email' => $this->email,
-                'password' => Hash::make($this->password),
-                'type' => UserType::Customer,
-                'status' => $this->status,
-            ]);
+                // Create a new User record
+                $user = User::create([
+                    'name' => $this->name,
+                    'email' => $this->email,
+                    'password' => Hash::make($this->password),
+                    'type' => UserType::Customer,
+                    'status' => $this->status,
+                ]);
 
-            // Create the associated Customer record
-            Customer::create([
-                'user_id' => $user->id,
-                'address' => $this->address,
-                'country_id' => $this->country_id ?: null,
-                'division_id' => $this->division_id ?: null,
-                'district_id' => $this->district_id ?: null,
-                'secondary_address' => $this->secondary_address,
-                'image' => $storedImagePath ?? '',
-            ]);
+                // Create the associated Customer record
+                $customer = Customer::create([
+                    'user_id' => $user->id,
+                    'address' => $this->address,
+                    'country_id' => $this->country_id ?: null,
+                    'division_id' => $this->division_id ?: null,
+                    'district_id' => $this->district_id ?: null,
+                    'secondary_address' => $this->secondary_address,
+                    'opening_balance' => $this->opening_balance,
+                    'image' => $storedImagePath ?? '',
+                ]);
+
+                // Handle opening balance transaction if amount is provided
+                if ($this->opening_balance && $this->opening_balance != 0) {
+                    $this->recordCustomerOpeningBalanceTransaction($customer, $this->opening_balance);
+                }
+            });
 
             $this->success('Customer Added Successfully');
 
@@ -146,6 +160,7 @@ new #[Layout('components.layouts.admin')] #[Title('Customer List')] class extend
         $this->division_id = $customer->division_id ?? '';
         $this->district_id = $customer->district_id ?? '';
         $this->secondary_address = $customer->secondary_address ?? '';
+        $this->opening_balance = $customer->opening_balance ?? 0;
         $this->image_link = $customer->image_link;
         $this->editModal = true;
     }
@@ -163,26 +178,38 @@ new #[Layout('components.layouts.admin')] #[Title('Customer List')] class extend
         ]);
 
         try {
-            // Update customer image if a new one is uploaded
-            $storedImagePath = $this->image ? $this->optimizeAndUpdateImage($this->image, $this->customer->image, 'public', 'customer', null, null, 75) : $this->customer->image;
+            DB::transaction(function () {
+                // Store the old opening balance for comparison
+                $oldOpeningBalance = $this->customer->opening_balance ?? 0;
+                $newOpeningBalance = $this->opening_balance ?? 0;
 
-            // Update associated User record
-            $this->customer->user->update([
-                'name' => $this->name,
-                'email' => $this->email,
-                'password' => $this->password != null ? Hash::make($this->password) : $this->customer->user->password,
-                'status' => $this->status,
-            ]);
+                // Update customer image if a new one is uploaded
+                $storedImagePath = $this->image ? $this->optimizeAndUpdateImage($this->image, $this->customer->image, 'public', 'customer', null, null, 75) : $this->customer->image;
 
-            // Update Customer record
-            $this->customer->update([
-                'address' => $this->address,
-                'country_id' => $this->country_id ?: null,
-                'division_id' => $this->division_id ?: null,
-                'district_id' => $this->district_id ?: null,
-                'secondary_address' => $this->secondary_address,
-                'image' => $storedImagePath,
-            ]);
+                // Update associated User record
+                $this->customer->user->update([
+                    'name' => $this->name,
+                    'email' => $this->email,
+                    'password' => $this->password != null ? Hash::make($this->password) : $this->customer->user->password,
+                    'status' => $this->status,
+                ]);
+
+                // Update Customer record
+                $this->customer->update([
+                    'address' => $this->address,
+                    'country_id' => $this->country_id ?: null,
+                    'division_id' => $this->division_id ?: null,
+                    'district_id' => $this->district_id ?: null,
+                    'secondary_address' => $this->secondary_address,
+                    'opening_balance' => $newOpeningBalance,
+                    'image' => $storedImagePath ?? '',
+                ]);
+
+                // Handle opening balance changes
+                if ($oldOpeningBalance != $newOpeningBalance) {
+                    $this->handleCustomerOpeningBalanceUpdate($this->customer, $oldOpeningBalance, $newOpeningBalance);
+                }
+            });
 
             $this->success('Customer Updated Successfully');
             $this->resetForm();
@@ -283,7 +310,8 @@ new #[Layout('components.layouts.admin')] #[Title('Customer List')] class extend
                         ->orWhere('secondary_address', 'like', $like)
                         ->orWhereHas('country', fn($cq) => $cq->where('name', 'like', $like))
                         ->orWhereHas('division', fn($dq) => $dq->where('name', 'like', $like))
-                        ->orWhereHas('district', fn($dq) => $dq->where('name', 'like', $like));
+                        ->orWhereHas('district', fn($dq) => $dq->where('name', 'like', $like))
+                        ->orWhere('opening_balance', 'like', $like);
                 });
             })
             ->latest()
@@ -374,13 +402,168 @@ new #[Layout('components.layouts.admin')] #[Title('Customer List')] class extend
     }
 
     /**
+     * Record opening balance transaction for a new customer.
+     *
+     * @param Customer $customer
+     * @param float $amount
+     * @return void
+     */
+    private function recordCustomerOpeningBalanceTransaction(Customer $customer, $amount): void
+    {
+        // Get or create customer account
+        $customerAccount = $this->getOrCreateCustomerAccount($customer);
+
+        // Get or create the equity account for opening balance contra-entry
+        $equityAccount = $this->getOrCreateEquityAccount();
+
+        // Determine debit/credit based on amount
+        // Positive amount = Customer owes us (Accounts Receivable - Asset account)
+        // Negative amount = We owe customer (Accounts Payable - Liability account)
+        if ($amount > 0) {
+            // Customer owes us - DEBIT Accounts Receivable, CREDIT Equity
+            $debitAccountId = $customerAccount->id;
+            $creditAccountId = $equityAccount->id;
+        } else {
+            // We owe customer - DEBIT Equity, CREDIT Accounts Payable
+            $debitAccountId = $equityAccount->id;
+            $creditAccountId = $customerAccount->id;
+            $amount = abs($amount); // Make amount positive for transaction
+        }
+
+        // Record the transaction
+        TransactionService::recordTransaction([
+            'source_type' => Customer::class,
+            'source_id' => $customer->id,
+            'date' => now()->toDateString(),
+            'amount' => $amount,
+            'debit_account_id' => $debitAccountId,
+            'credit_account_id' => $creditAccountId,
+            'description' => "Opening balance for customer: {$customer->user->name}",
+            'approved_at' => now(),
+        ]);
+    }
+
+    /**
+     * Handle opening balance update for existing customer.
+     *
+     * @param Customer $customer
+     * @param float $oldBalance
+     * @param float $newBalance
+     * @return void
+     */
+    private function handleCustomerOpeningBalanceUpdate(Customer $customer, $oldBalance, $newBalance): void
+    {
+        $difference = $newBalance - $oldBalance;
+
+        if ($difference == 0) {
+            return; // No change needed
+        }
+
+        // Get or create customer account
+        $customerAccount = $this->getOrCreateCustomerAccount($customer);
+
+        // Get or create the equity account
+        $equityAccount = $this->getOrCreateEquityAccount();
+
+        // Determine debit/credit based on difference
+        if ($difference > 0) {
+            // Balance increased - Customer owes us more
+            $debitAccountId = $customerAccount->id;
+            $creditAccountId = $equityAccount->id;
+        } else {
+            // Balance decreased - Customer owes us less
+            $debitAccountId = $equityAccount->id;
+            $creditAccountId = $customerAccount->id;
+            $difference = abs($difference); // Make amount positive for transaction
+        }
+
+        // Record the adjustment transaction
+        TransactionService::recordTransaction([
+            'source_type' => Customer::class,
+            'source_id' => $customer->id,
+            'date' => now()->toDateString(),
+            'amount' => $difference,
+            'debit_account_id' => $debitAccountId,
+            'credit_account_id' => $creditAccountId,
+            'description' => "Opening balance adjustment for customer: {$customer->user->name} (Old: {$oldBalance}, New: {$newBalance})",
+            'approved_at' => now(),
+        ]);
+    }
+
+    /**
+     * Get or create customer account in chart of accounts.
+     *
+     * @param Customer $customer
+     * @return ChartOfAccount
+     */
+    private function getOrCreateCustomerAccount(Customer $customer): ChartOfAccount
+    {
+        $accountName = "Accounts Receivable - {$customer->user->name}";
+
+        // Try to find existing account
+        $account = ChartOfAccount::where('name', $accountName)->first();
+
+        if (!$account) {
+            // Create new customer account
+            ChartOfAccount::$skipCodeGeneration = true;
+            $account = ChartOfAccount::create([
+                'code' => $this->getNextCustomerAccountCode(),
+                'name' => $accountName,
+                'type' => 'asset', // Accounts Receivable is an asset
+                'opening_balance' => 0,
+                'current_balance' => 0,
+            ]);
+            ChartOfAccount::$skipCodeGeneration = false;
+        }
+
+        return $account;
+    }
+
+    /**
+     * Get or create equity account for opening balance contra-entry.
+     *
+     * @return ChartOfAccount
+     */
+    private function getOrCreateEquityAccount(): ChartOfAccount
+    {
+        $equityAccount = ChartOfAccount::where('type', 'equity')->whereNull('parent_id')->first();
+
+        if (!$equityAccount) {
+            // Create a default equity account if it doesn't exist
+            ChartOfAccount::$skipCodeGeneration = true;
+            $equityAccount = ChartOfAccount::create([
+                'code' => 300,
+                'name' => 'Owner\'s Equity',
+                'type' => 'equity',
+                'opening_balance' => 0,
+                'current_balance' => 0,
+            ]);
+            ChartOfAccount::$skipCodeGeneration = false;
+        }
+
+        return $equityAccount;
+    }
+
+    /**
+     * Get next available code for customer account.
+     *
+     * @return int
+     */
+    private function getNextCustomerAccountCode(): int
+    {
+        $lastCustomerAccount = ChartOfAccount::where('type', 'asset')->where('name', 'like', 'Accounts Receivable%')->orderByDesc('code')->first();
+
+        return $lastCustomerAccount ? $lastCustomerAccount->code + 1 : 105; // Start from 105 if none exist
+    }
+
+    /**
      * Helper method to reset form fields.
      *
      * @return void
      */
     private function resetForm()
     {
-        $this->reset(['address', 'secondary_address', 'country_id', 'division_id', 'district_id', 'name', 'email', 'password', 'confirmation_password', 'status', 'image']);
+        $this->reset(['address', 'secondary_address', 'country_id', 'division_id', 'district_id', 'name', 'email', 'password', 'confirmation_password', 'status', 'image', 'opening_balance']);
     }
 }; ?>
 
@@ -438,6 +621,7 @@ new #[Layout('components.layouts.admin')] #[Title('Customer List')] class extend
                     search-function="districtSearch" searchable />
                 <x-input label="Primary Address" placeholder="Primary Address" wire:model="address" />
                 <x-input label="Secondary Address" placeholder="Secondary Address" wire:model="secondary_address" />
+                <x-input type="number" label="Opening Balance" placeholder="Opening Balance" wire:model="opening_balance" />
                 <x-password label="Password" placeholder="Password" wire:model="password" required right />
                 <x-password label="Confirm Password" placeholder="Confirm Password" wire:model="confirmation_password" required right />
                 <x-radio label="Customer Status" :options="$statuses" wire:model="status" />
@@ -445,7 +629,7 @@ new #[Layout('components.layouts.admin')] #[Title('Customer List')] class extend
             </div>
             <x-slot:actions>
                 <x-button label="Close" @click="$wire.createModal = false" class="btn-sm" />
-                <x-button type="submit" label="Add Customer" class="btn-primary btn-sm" />
+                <x-button type="submit" label="Add Customer" class="btn-primary btn-sm" spinner="storeCustomer" />
             </x-slot:actions>
         </x-form>
     </x-modal>
@@ -462,6 +646,7 @@ new #[Layout('components.layouts.admin')] #[Title('Customer List')] class extend
                     search-function="districtSearch" searchable />
                 <x-input label="Primary Address" placeholder="Primary Address" wire:model="address" />
                 <x-input label="Secondary Address" placeholder="Secondary Address" wire:model="secondary_address" />
+                <x-input type="number" label="Opening Balance" placeholder="Opening Balance" wire:model="opening_balance" />
                 <x-password label="Password" placeholder="Password" wire:model="password" right />
                 <x-password label="Confirm Password" placeholder="Confirm Password" wire:model="confirmation_password" right />
                 <x-radio label="Customer Status" :options="$statuses" wire:model="status" />
@@ -469,7 +654,7 @@ new #[Layout('components.layouts.admin')] #[Title('Customer List')] class extend
             </div>
             <x-slot:actions>
                 <x-button label="Close" @click="$wire.editModal = false" class="btn-sm" />
-                <x-button type="submit" label="Update Customer" class="btn-primary btn-sm" />
+                <x-button type="submit" label="Save" class="btn-primary btn-sm" spinner="updateCustomer" />
             </x-slot:actions>
         </x-form>
     </x-modal>

@@ -6,10 +6,12 @@ use App\Models\User;
 use App\Models\Country;
 use App\Models\District;
 use App\Models\Division;
+use App\Models\Transactions;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Customer extends Model
 {
@@ -28,6 +30,7 @@ class Customer extends Model
         'division_id',
         'district_id',
         'secondary_address',
+        'opening_balance',
         'action_by',
     ];
 
@@ -60,7 +63,7 @@ class Customer extends Model
                 return url('storage/' . $this->image);
             }
             // Fallback to Storage URL
-            return Storage::disk('public')->url($this->image);
+            return asset('storage/' . $this->image);
         }
         return asset('empty-user.jpg');
     }
@@ -68,5 +71,13 @@ class Customer extends Model
     public function actionBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'action_by', 'id');
+    }
+
+    /**
+     * Get all transactions related to this customer.
+     */
+    public function transactions(): MorphMany
+    {
+        return $this->morphMany(Transactions::class, 'source');
     }
 }
