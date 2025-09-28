@@ -83,11 +83,12 @@ new #[Layout('components.layouts.admin')] #[Title('Income Expense Approvals')] c
                 TransactionService::recordTransaction([
                     'source_type' => Income::class,
                     'source_id' => $income->id,
-                    'date' => now(),
+                    'date' => now()->toDateString(),
                     'amount' => $income->amount,
                     'debit_account_id' => $income->account_id,
                     'credit_account_id' => ChartOfAccount::where('name', 'Revenue Income')->first()->id,
                     'description' => 'Income Transaction - ' . ($income->reference ?? 'No Reference'),
+                    'approved_at' => now(),
                 ]);
             });
 
@@ -124,11 +125,12 @@ new #[Layout('components.layouts.admin')] #[Title('Income Expense Approvals')] c
                 TransactionService::recordTransaction([
                     'source_type' => Expense::class,
                     'source_id' => $expense->id,
-                    'date' => now(),
+                    'date' => now()->toDateString(),
                     'amount' => $expense->amount,
                     'debit_account_id' => $expense->expenses_head_id,
                     'credit_account_id' => $expense->account_id,
                     'description' => 'Expense Transaction - ' . ($expense->remarks ?? 'No Remarks'),
+                    'approved_at' => now(),
                 ]);
             });
 
