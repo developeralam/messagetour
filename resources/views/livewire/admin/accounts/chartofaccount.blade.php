@@ -11,6 +11,7 @@ use Livewire\Attributes\Title;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Computed;
 use App\Services\TransactionService;
+use Illuminate\Support\Facades\DB;
 
 new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class extends Component {
     use Toast, WithFileUploads, WithPagination;
@@ -67,21 +68,24 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class ex
     {
         $this->validate();
         try {
-            $account = ChartOfAccount::create([
-                'name' => $this->name,
-                'parent_id' => $this->parent_id,
-                'type' => $this->type,
-                'opening_balance' => $this->opening_balance ?? 0,
-            ]);
+            DB::transaction(function () {
+                $account = ChartOfAccount::create([
+                    'name' => $this->name,
+                    'parent_id' => $this->parent_id,
+                    'type' => $this->type,
+                    'opening_balance' => $this->opening_balance ?? 0,
+                ]);
 
-            // Record opening balance transaction with proper debit/credit logic
-            $this->recordOpeningBalanceTransaction($account, $this->opening_balance);
+                // Record opening balance transaction with proper debit/credit logic
+                if ($this->opening_balance && $this->opening_balance != 0) {
+                    $this->recordOpeningBalanceTransaction($account, $this->opening_balance);
+                }
+            });
 
             $this->reset(['name', 'type', 'parent_id', 'opening_balance']);
             $this->success('Chart Of Account Added Successfully');
             $this->createModal = false;
         } catch (\Throwable $th) {
-            dd($th->getMessage());
             $this->createModal = false;
             $this->error(env('APP_DEBUG', false) ? $th->getMessage() : 'Something went wrong');
         }
@@ -102,20 +106,24 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class ex
     {
         $this->validate();
         try {
-            $oldOpeningBalance = $this->account->opening_balance;
+            DB::transaction(function () {
+                $oldOpeningBalance = $this->account->opening_balance;
 
-            $this->account->update([
-                'name' => $this->name,
-                'parent_id' => $this->parent_id,
-                'type' => $this->type,
-                'opening_balance' => $this->opening_balance ?? 0,
-            ]);
+                $this->account->update([
+                    'name' => $this->name,
+                    'parent_id' => $this->parent_id,
+                    'type' => $this->type,
+                    'opening_balance' => $this->opening_balance ?? 0,
+                ]);
 
-            // If opening balance changed, record the adjustment transaction
-            if ($oldOpeningBalance != $this->opening_balance) {
-                $difference = $this->opening_balance - $oldOpeningBalance;
-                $this->recordOpeningBalanceTransaction($this->account, $difference, 'Opening Balance Adjustment');
-            }
+                // If opening balance changed, record the adjustment transaction
+                if ($oldOpeningBalance != $this->opening_balance && $this->opening_balance !== null) {
+                    $difference = $this->opening_balance - $oldOpeningBalance;
+                    if ($difference != 0) {
+                        $this->recordOpeningBalanceTransaction($this->account, $difference, 'Opening Balance Adjustment');
+                    }
+                }
+            });
 
             $this->reset(['name', 'type', 'parent_id', 'opening_balance']);
             $this->success('Chart Of Account Updated Successfully');
@@ -141,6 +149,11 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class ex
      */
     private function recordOpeningBalanceTransaction(ChartOfAccount $account, $amount, $description = 'Opening Balance')
     {
+        // Validate amount is not null or zero
+        if ($amount === null || $amount == 0) {
+            return;
+        }
+
         // Get or create the equity account for opening balance contra-entry
         $equityAccount = ChartOfAccount::where('type', 'equity')->whereNull('parent_id')->first();
 
@@ -191,8 +204,9 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class ex
             'amount' => $amount,
             'debit_account_id' => $debitAccountId,
             'credit_account_id' => $creditAccountId,
-            'date' => now(),
+            'date' => now()->toDateString(),
             'description' => $description,
+            'approved_at' => now(),
         ]);
     }
 
