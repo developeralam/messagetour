@@ -27,12 +27,12 @@
                 <!-- Hidden when collapsed -->
                 <div {{ $attributes->class(['hidden-when-collapsed']) }}>
                     <div class="flex items-center gap-2">
-                        <img class="w-48 h-10" src="{{ asset($globalSettings->logo_link ?? 'logo.png') }}" alt="Logo">
+                        <img class="w-48 h-10" src="{{ $globalSettings->logo_link ?? 'logo.png' }}" alt="Logo">
                     </div>
                 </div>
                 <!-- Display when collapsed -->
                 <div class="display-when-collapsed hidden mx-5 mt-4 lg:mb-6 h-[28px]">
-                    <img src="{{ asset($globalSettings->logo_link ?? 'logo.png') }}" alt="Logo">
+                    <img src="{{ $globalSettings->logo_link ?? 'logo.png' }}" alt="Logo">
                 </div>
             </a>
         </x-slot:brand>

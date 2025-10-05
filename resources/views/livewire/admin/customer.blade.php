@@ -137,6 +137,7 @@ new #[Layout('components.layouts.admin')] #[Title('Customer List')] class extend
             $this->reset(['address', 'secondary_address', 'country_id', 'division_id', 'district_id', 'name', 'email', 'password', 'confirmation_password', 'status', 'image']);
             $this->createModal = false;
         } catch (\Throwable $th) {
+            dd($th->getMessage());
             $this->resetForm();
             $this->createModal = false;
             $this->error(env('APP_DEBUG') ? $th->getMessage() : 'Something went wrong.');
