@@ -87,6 +87,7 @@ new #[Layout('components.layouts.admin')] #[Title('Global Settings')] class exte
             $this->reservation_email = $data->reservation_email;
             $this->account = $data->account;
             $this->account_email = $data->account_email;
+            $this->application_name = $data->application_name;
         }
     }
 
@@ -139,8 +140,7 @@ new #[Layout('components.layouts.admin')] #[Title('Global Settings')] class exte
                 <x-file wire:model="logo" label="Website Logo" accept="image/png, image/jpeg,image/jpg" />
                 <x-file wire:model="favicon" label="Favicon" accept="image/png, image/jpeg,image/jpg" />
                 <x-input wire:model="application_name" label="Application Name" placeholder="Application Name" />
-                <x-input type="email" wire:model="contact_email" label="Information Email"
-                    placeholder="Information Email" />
+                <x-input type="email" wire:model="contact_email" label="Information Email" placeholder="Information Email" />
                 <x-input type="email" wire:model="support_email" label="Support Email" placeholder="Support Email" />
                 <x-input wire:model="phone" label="Phone" placeholder="Phone" />
                 <x-input wire:model="address" label="Address" placeholder="Address" />
@@ -151,14 +151,12 @@ new #[Layout('components.layouts.admin')] #[Title('Global Settings')] class exte
                 <x-input wire:model="sms_api_key" label="Sms Api Key" placeholder="Sms Api Key" />
                 <x-input wire:model="sms_sender_id" label="Sms Sender Id" placeholder="Sms Sender Id" />
                 <x-input wire:model="reservation" label="Reservation" placeholder="Reservation" />
-                <x-input type="email" wire:model="reservation_email" label="Reservation Email"
-                    placeholder="Reservation Email" />
+                <x-input type="email" wire:model="reservation_email" label="Reservation Email" placeholder="Reservation Email" />
                 <x-input wire:model="account" label="Account" placeholder="Account" />
                 <x-input type="email" wire:model="account_email" label="Account Email" placeholder="Account Email" />
             </div>
             <x-slot:actions>
-                <x-button type="submit" label="Store Global Data" spinner="storeGlobalData"
-                    class="btn-primary btn-sm" />
+                <x-button type="submit" label="Store Global Data" spinner="storeGlobalData" class="btn-primary btn-sm" />
             </x-slot>
         </x-card>
     </x-form>

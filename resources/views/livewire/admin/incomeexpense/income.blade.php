@@ -277,7 +277,7 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
                 {{ $income->actionBy->name ?? 'N/A' }}
             @endscope
             @scope('cell_income_date', $income)
-                {{ $income->income_date->format('d M, Y') ?? 'N/A' }}
+                {{ $income->income_date ? $income->income_date->format('d M, Y') : 'N/A' }}
             @endscope
             @scope('cell_remarks', $income)
                 {{ $income->remarks ?? 'N/A' }}
