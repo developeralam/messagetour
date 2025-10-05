@@ -44,18 +44,27 @@ class GlobalSettings extends Model
         'application_name',
     ];
 
+    /**
+     * Get the base URL for the application
+     */
+    private function getBaseUrl()
+    {
+        return 'https://massagetourtravels.com';
+    }
+
     public function getLogoLinkAttribute()
     {
         if ($this->logo) {
-            return Storage::disk('public')->url('/' . $this->logo);
+            return $this->getBaseUrl() . '/storage/' . $this->logo;
         }
-        return '/logo.png';
+        return $this->getBaseUrl() . '/logo.png';
     }
 
     public function getFaviconLinkAttribute()
     {
         if ($this->favicon) {
-            return Storage::disk('public')->url('/' . $this->favicon);
+            return $this->getBaseUrl() . '/storage/' . $this->favicon;
         }
+        return null;
     }
 }
