@@ -241,7 +241,7 @@ new #[Layout('components.layouts.admin')] #[Title('Chart Of Accounts')] class ex
 
     public function redirectToPrint()
     {
-        return redirect()->route('admin.ledger-print-report', [
+        return redirect()->route('.adminledger-print-report', [
             'category_id' => $this->category_id,
             'from_date' => $this->from_date,
             'to_date' => $this->to_date,

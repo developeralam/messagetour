@@ -53,6 +53,27 @@ class Agent extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function country(): BelongsTo
+    {
+        return $this->belongsTo(Country::class);
+    }
+
+    public function division(): BelongsTo
+    {
+        return $this->belongsTo(Division::class);
+    }
+
+    public function district(): BelongsTo
+    {
+        return $this->belongsTo(District::class);
+    }
+
+    // Alias for city (using district)
+    public function city()
+    {
+        return $this->district();
+    }
     public function getBusinessLogoLinkAttribute()
     {
         if ($this->business_logo) {
@@ -79,6 +100,32 @@ class Agent extends Model
         }
         return null;
     }
+
+    // Business information attributes for PDF reports
+    public function getNameAttribute()
+    {
+        return $this->business_name;
+    }
+
+    public function getMobileAttribute()
+    {
+        return $this->business_phone;
+    }
+
+    public function getEmailAttribute()
+    {
+        return $this->business_email;
+    }
+
+    public function getWebsiteAttribute()
+    {
+        return $this->business_email; // Using email as website fallback
+    }
+
+    public function getLogoLinkAttribute()
+    {
+        return $this->business_logo_link;
+    }
     public function getPropiterImageLinkAttribute()
     {
         if ($this->agent_image) {
@@ -91,18 +138,6 @@ class Agent extends Model
             return Storage::disk('public')->url($this->agent_image);
         }
         return asset('empty-user.jpg');
-    }
-    public function country(): BelongsTo
-    {
-        return $this->belongsTo(Country::class);
-    }
-    public function division(): BelongsTo
-    {
-        return $this->belongsTo(Division::class);
-    }
-    public function district(): BelongsTo
-    {
-        return $this->belongsTo(District::class);
     }
     public function actionBy(): BelongsTo
     {

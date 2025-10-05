@@ -64,7 +64,8 @@ class PDFController extends Controller
 
     public function chart_of_account($category_id, $from_date, $to_date)
     {
-        $business = auth()->user()->business;
+        $user = auth()->user();
+        $business = $user->agent;
         $account = ChartOfAccount::findOrFail($category_id);
 
         $openingBalance = Ledger::where('account_id', $category_id)
@@ -160,7 +161,8 @@ class PDFController extends Controller
 
     public function chart_of_account_category($category_id, $from_date, $to_date)
     {
-        $business = auth()->user()->business;
+        $user = auth()->user();
+        $business = $user->agent;
         $account = ChartOfAccount::findOrFail($category_id);
 
         $openingBalance = Ledger::where('account_id', $category_id)
