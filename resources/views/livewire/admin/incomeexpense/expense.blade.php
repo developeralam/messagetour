@@ -133,7 +133,7 @@ new #[Layout('components.layouts.admin')] #[Title('Expense List')] class extends
         $this->expenses_head_id = $expense->expenses_head_id;
         $this->account_id = $expense->account_id;
         $this->amount = $expense->amount;
-        $this->expense_date = $expense->expense_date->format('Y-m-d');
+        $this->expense_date = $expense->expense_date ? $expense->expense_date->format('Y-m-d') : null;
         $this->remarks = $expense->remarks ?? null;
         $this->editModal = true;
     }
@@ -193,7 +193,7 @@ new #[Layout('components.layouts.admin')] #[Title('Expense List')] class extends
                 {{ $expense->actionBy->name ?? 'N/A' }}
             @endscope
             @scope('cell_expense_date', $expense)
-                {{ $expense->expense_date->format('d M, Y') ?? 'N/A' }}
+                {{ $expense->expense_date ? $expense->expense_date->format('d M, Y') : 'N/A' }}
             @endscope
             @scope('cell_remarks', $expense)
                 {{ $expense->remarks ?? 'N/A' }}
