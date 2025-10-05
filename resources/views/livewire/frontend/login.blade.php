@@ -89,7 +89,7 @@ new #[Layout('components.layouts.frontendlogin')] #[Title('Sign In')] class exte
         style="border-radius: 16px; min-height: 380px;">
 
         <div class="flex flex-col items-center mb-8">
-            <img src="{{ asset('logo.png') }}" alt="Logo" class="w-48 mb-2"> <!-- Larger logo -->
+            <img src="{{ $globalSettings->logo_link ?? '/logo.png' }}" alt="Logo" class="w-48 mb-2"> <!-- Larger logo -->
             <div class="flex space-x-2 mt-4">
                 <button class="px-6 py-2 rounded-full text-sm font-semibold transition-all duration-200"
                     :class="tab === 'login' ? 'bg-green-600 text-white shadow' :
@@ -113,14 +113,12 @@ new #[Layout('components.layouts.frontendlogin')] #[Title('Sign In')] class exte
             <x-form wire:submit="login" class="flex flex-col gap-y-4">
                 <div class="relative">
                     <input type="email" placeholder="Email address"
-                        class="w-full border border-gray-200 rounded-lg px-4 py-2 pr-10 focus:outline-none"
-                        wire:model="email" required>
+                        class="w-full border border-gray-200 rounded-lg px-4 py-2 pr-10 focus:outline-none" wire:model="email" required>
                     @error('email')
                         <span class="text-red-500 text-xs">{{ $message }}</span>
                     @enderror
                     <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
@@ -128,28 +126,25 @@ new #[Layout('components.layouts.frontendlogin')] #[Title('Sign In')] class exte
                 </div>
                 <div x-data="{ show: false }" class="relative">
                     <input :type="show ? 'text' : 'password'" placeholder="Password"
-                        class="w-full border border-gray-200 rounded-lg px-4 py-2 pr-10 focus:outline-none"
-                        wire:model="password" required>
+                        class="w-full border border-gray-200 rounded-lg px-4 py-2 pr-10 focus:outline-none" wire:model="password" required>
                     @error('password')
                         <span class="text-red-500 text-xs">{{ $message }}</span>
                     @enderror
-                    <button type="button" class="absolute right-3 top-3 text-gray-400 focus:outline-none"
-                        @click="show = !show" tabindex="-1">
-                        <svg x-show="!show" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
+                    <button type="button" class="absolute right-3 top-3 text-gray-400 focus:outline-none" @click="show = !show" tabindex="-1">
+                        <svg x-show="!show" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm7.5 0a9.003 9.003 0 01-17.978 0A9.003 9.003 0 0121.5 12z" />
                         </svg>
-                        <svg x-show="show" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
+                        <svg x-show="show" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M13.875 18.825A10.05 10.05 0 0112 19c-5.523 0-10-4.477-10-10 0-1.657.403-3.221 1.125-4.575m1.875 1.875A9.978 9.978 0 0121.5 12c0 1.657-.403 3.221-1.125 4.575m-1.875-1.875A9.978 9.978 0 012.5 12" />
                         </svg>
                     </button>
                 </div>
                 <div class="flex justify-between items-center">
-                    <a href="{{ route('forgetpassword') }}"
-                        class="text-sm font-semibold text-blue-500 transition duration-200 hover:underline">Forgot
+                    <a href="{{ route('forgetpassword') }}" class="text-sm font-semibold text-blue-500 transition duration-200 hover:underline">Forgot
                         password?</a>
                 </div>
                 <x-button type="submit"
@@ -210,8 +205,7 @@ new #[Layout('components.layouts.frontendlogin')] #[Title('Sign In')] class exte
                         <span class="text-red-500 text-xs">{{ $message }}</span>
                     @enderror
                     <span class="absolute right-3 top-9 text-gray-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M5.121 17.804A13.937 13.937 0 0112 15c2.485 0 4.797.657 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
@@ -221,61 +215,53 @@ new #[Layout('components.layouts.frontendlogin')] #[Title('Sign In')] class exte
                     <label for="register_email" class="block text-sm font-semibold text-green-700 mb-1">Email
                         Address</label>
                     <input id="register_email" type="email" placeholder="Email address"
-                        class="w-full border border-gray-200 rounded-lg px-4 py-2 focus:outline-none"
-                        wire:model="email" required>
+                        class="w-full border border-gray-200 rounded-lg px-4 py-2 focus:outline-none" wire:model="email" required>
                     @error('email')
                         <span class="text-red-500 text-xs">{{ $message }}</span>
                     @enderror
                     <span class="absolute right-3 top-9 text-gray-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
                     </span>
                 </div>
                 <div x-data="{ show: false }" class="relative">
-                    <label for="register_password"
-                        class="block text-sm font-semibold text-green-700 mb-1">Password</label>
+                    <label for="register_password" class="block text-sm font-semibold text-green-700 mb-1">Password</label>
                     <input id="register_password" :type="show ? 'text' : 'password'" placeholder="Password"
-                        class="w-full border border-gray-200 rounded-lg px-4 py-2 pr-10 focus:outline-none"
-                        wire:model="password" required>
+                        class="w-full border border-gray-200 rounded-lg px-4 py-2 pr-10 focus:outline-none" wire:model="password" required>
                     @error('password')
                         <span class="text-red-500 text-xs">{{ $message }}</span>
                     @enderror
-                    <button type="button" class="absolute right-3 top-9 text-gray-400 focus:outline-none"
-                        @click="show = !show" tabindex="-1">
-                        <svg x-show="!show" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
+                    <button type="button" class="absolute right-3 top-9 text-gray-400 focus:outline-none" @click="show = !show" tabindex="-1">
+                        <svg x-show="!show" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm7.5 0a9.003 9.003 0 01-17.978 0A9.003 9.003 0 0121.5 12z" />
                         </svg>
-                        <svg x-show="show" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
+                        <svg x-show="show" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M13.875 18.825A10.05 10.05 0 0112 19c-5.523 0-10-4.477-10-10 0-1.657.403-3.221 1.125-4.575m1.875 1.875A9.978 9.978 0 0121.5 12c0 1.657-.403 3.221-1.125 4.575m-1.875-1.875A9.978 9.978 0 012.5 12" />
                         </svg>
                     </button>
                 </div>
                 <div x-data="{ show: false }" class="relative">
-                    <label for="register_confirmation_password"
-                        class="block text-sm font-semibold text-green-700 mb-1">Confirm Password</label>
-                    <input id="register_confirmation_password" :type="show ? 'text' : 'password'"
-                        placeholder="Confirm Password"
-                        class="w-full border border-gray-200 rounded-lg px-4 py-2 pr-10 focus:outline-none"
-                        wire:model="confirmation_password" required>
+                    <label for="register_confirmation_password" class="block text-sm font-semibold text-green-700 mb-1">Confirm Password</label>
+                    <input id="register_confirmation_password" :type="show ? 'text' : 'password'" placeholder="Confirm Password"
+                        class="w-full border border-gray-200 rounded-lg px-4 py-2 pr-10 focus:outline-none" wire:model="confirmation_password"
+                        required>
                     @error('confirmation_password')
                         <span class="text-red-500 text-xs">{{ $message }}</span>
                     @enderror
-                    <button type="button" class="absolute right-3 top-9 text-gray-400 focus:outline-none"
-                        @click="show = !show" tabindex="-1">
-                        <svg x-show="!show" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
+                    <button type="button" class="absolute right-3 top-9 text-gray-400 focus:outline-none" @click="show = !show" tabindex="-1">
+                        <svg x-show="!show" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm7.5 0a9.003 9.003 0 01-17.978 0A9.003 9.003 0 0121.5 12z" />
                         </svg>
-                        <svg x-show="show" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
+                        <svg x-show="show" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M13.875 18.825A10.05 10.05 0 0112 19c-5.523 0-10-4.477-10-10 0-1.657.403-3.221 1.125-4.575m1.875 1.875A9.978 9.978 0 0121.5 12c0 1.657-.403 3.221-1.125 4.575m-1.875-1.875A9.978 9.978 0 012.5 12" />
                         </svg>

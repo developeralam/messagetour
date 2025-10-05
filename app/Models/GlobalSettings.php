@@ -49,6 +49,7 @@ class GlobalSettings extends Model
         if ($this->logo) {
             return Storage::disk('public')->url('/' . $this->logo);
         }
+        return '/logo.png';
     }
 
     public function getFaviconLinkAttribute()

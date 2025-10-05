@@ -49,21 +49,17 @@ new #[Layout('components.layouts.admin-auth')] #[Title('Partner Login')] class e
     }
 }; ?>
 
-<div
-    class="min-h-screen flex items-center justify-center bg-gradient-to-tr from-[#0f2027] via-[#2c5364] to-[#009f51] p-6">
-    <div
-        class="relative bg-white/20 border border-white/30 backdrop-blur-xl rounded-3xl shadow-2xl w-full max-w-lg px-10 py-12 overflow-hidden">
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-tr from-[#0f2027] via-[#2c5364] to-[#009f51] p-6">
+    <div class="relative bg-white/20 border border-white/30 backdrop-blur-xl rounded-3xl shadow-2xl w-full max-w-lg px-10 py-12 overflow-hidden">
         <!-- Decorative Gradient Circle -->
-        <div
-            class="absolute -top-16 -right-16 w-48 h-48 bg-gradient-to-br from-green-400 via-green-200 to-white opacity-30 rounded-full z-0">
+        <div class="absolute -top-16 -right-16 w-48 h-48 bg-gradient-to-br from-green-400 via-green-200 to-white opacity-30 rounded-full z-0">
         </div>
         <!-- Logo -->
         <div class="flex justify-center mb-6 z-10 relative">
-            <img src="{{ asset('logo.png') }}" alt="Logo" class="w-44 drop-shadow-lg rounded-xl bg-white/70 p-2">
+            <img src="{{ $globalSettings->logo_link ?? '/logo.png' }}" alt="Logo" class="w-44 drop-shadow-lg rounded-xl bg-white/70 p-2">
         </div>
         <!-- Title -->
-        <h2
-            class="text-white text-center text-2xl font-extrabold mb-6 tracking-widest italic drop-shadow-lg z-10 relative">
+        <h2 class="text-white text-center text-2xl font-extrabold mb-6 tracking-widest italic drop-shadow-lg z-10 relative">
             Partner Portal
         </h2>
         <!-- Login Form -->
@@ -82,8 +78,7 @@ new #[Layout('components.layouts.admin-auth')] #[Title('Partner Login')] class e
 
             <x-slot:actions>
                 <div class="flex justify-between gap-3">
-                    <x-button label="Home" class="btn-sm bg-white/80 text-green-700 hover:bg-green-50 transition"
-                        link="/" />
+                    <x-button label="Home" class="btn-sm bg-white/80 text-green-700 hover:bg-green-50 transition" link="/" />
                     <x-button label="Login" type="submit" icon="o-paper-airplane"
                         class="btn-primary btn-sm bg-gradient-to-r from-green-500 to-green-700 text-white shadow-lg hover:from-green-600 hover:to-green-800 transition"
                         spinner="login" />
@@ -99,13 +94,11 @@ new #[Layout('components.layouts.admin-auth')] #[Title('Partner Login')] class e
         <!-- Registration Link -->
         <p class="text-sm text-white/80 text-center">
             Don't have an account?
-            <a href="/partner/register"
-                class="underline font-semibold hover:text-green-600 text-green-500 transition">Register
+            <a href="/partner/register" class="underline font-semibold hover:text-green-600 text-green-500 transition">Register
                 here</a>
         </p>
         <!-- Decorative Bottom Shape -->
-        <div
-            class="absolute -bottom-16 -left-16 w-48 h-48 bg-gradient-to-tl from-green-400 via-green-200 to-white opacity-20 rounded-full z-0">
+        <div class="absolute -bottom-16 -left-16 w-48 h-48 bg-gradient-to-tl from-green-400 via-green-200 to-white opacity-20 rounded-full z-0">
         </div>
     </div>
 </div>
