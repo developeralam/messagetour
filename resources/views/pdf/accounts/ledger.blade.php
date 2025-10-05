@@ -124,18 +124,27 @@
                 <tr>
                     <td style="width: 120px">
                         @php
-                            $imagePath = auth()->user()->business->logo_link;
-                            $imageData = base64_encode(file_get_contents($imagePath));
-                            $src = 'data:image/webp;base64,' . $imageData;
+                            $business = auth()->user()->agent;
+                            if ($business && $business->business_logo) {
+                                $imagePath = $business->business_logo_link;
+                                if (file_exists(public_path('storage/' . $business->business_logo))) {
+                                    $imageData = base64_encode(file_get_contents($imagePath));
+                                    $src = 'data:image/webp;base64,' . $imageData;
+                                } else {
+                                    $src = asset('logo.png');
+                                }
+                            } else {
+                                $src = asset('logo.png');
+                            }
                         @endphp
 
                         <img src="{{ $src }}" width="80" height="60" style="margin-right: 15px" />
                     </td>
                     <td>
-                        <p>{{ $business->name }}</p>
-                        <p>{{ $business->country->name }}, {{ $business->city->name }}</p>
-                        <p>Contact: {{ $business->mobile }}, {{ $business->email }}</p>
-                        <p>Web: {{ $business->website }}</p>
+                        <p>{{ $business->business_name ?? 'Business Name' }}</p>
+                        <p>{{ $business->country->name ?? 'Country' }}, {{ $business->district->name ?? 'City' }}</p>
+                        <p>Contact: {{ $business->business_phone ?? 'Phone' }}, {{ $business->business_email ?? 'Email' }}</p>
+                        <p>Web: {{ $business->business_email ?? 'Website' }}</p>
                     </td>
                     <td style="text-align: right">
                         <span style="background: #000; color: #fff; padding: 3px 5px">Account Report</span>

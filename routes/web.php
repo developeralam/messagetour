@@ -110,8 +110,8 @@ Route::middleware(Admin::class)->prefix('admin')->name('.admin')->group(function
         Route::prefix('reports')->group(function () {
             Volt::route('/trail-balance', 'admin.accounts.report.trailbalance');
             Volt::route('/balance-sheet', 'admin.accounts.report.balancesheet');
-            Route::get('ledger-print-report/{category_id}/{from_date}/{to_date}', [PdfController::class, 'chart_of_account'])->name('ledger-print-report');
-            Route::get('ledger-category-print-report/{category_id}/{from_date}/{to_date}', [PdfController::class, 'chart_of_account_category'])->name('ledger-category-print-report');
+            Route::get('ledger-print-report/{category_id}/{from_date}/{to_date}', [PDFController::class, 'chart_of_account'])->name('ledger-print-report');
+            Route::get('ledger-category-print-report/{category_id}/{from_date}/{to_date}', [PDFController::class, 'chart_of_account_category'])->name('ledger-category-print-report');
         });
     });
 
