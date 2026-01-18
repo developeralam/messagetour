@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Agent;
 use App\Models\Customer;
 use App\Models\ChartOfAccount;
+use App\Enum\AccountPaymentType;
 use App\Enum\TransactionStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -29,6 +30,7 @@ class Income extends Model
         'remarks',
         'payment_slip',
         'status',
+        'payment_status',
         'created_by',
         'action_by',
     ];
@@ -36,6 +38,7 @@ class Income extends Model
     protected $casts = [
         'status' => TransactionStatus::class,
         'income_date' => 'date',
+        'payment_status' => AccountPaymentType::class,
     ];
 
     /**

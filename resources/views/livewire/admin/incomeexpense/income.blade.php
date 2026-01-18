@@ -11,8 +11,10 @@ use Livewire\Attributes\Rule;
 use App\Models\ChartOfAccount;
 use Livewire\Attributes\Title;
 use App\Enum\TransactionStatus;
+use App\Enum\AccountPaymentType;
 use Livewire\Attributes\Layout;
 use App\Services\TransactionService;
+use Illuminate\Support\Facades\DB;
 
 new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends Component {
     use Toast, WithPagination;
@@ -24,6 +26,7 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
     public $customers = [];
     public $agents = [];
     public $accounts = [];
+    public $payment_statuses = [];
     public array $sortBy = ['column' => 'id', 'direction' => 'desc'];
     public Income $income;
 
@@ -48,6 +51,9 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
     #[Rule('nullable')]
     public $remarks;
 
+    #[Rule('nullable')]
+    public $payment_status;
+
     public bool $createModal = false;
     public bool $editModal = false;
 
@@ -65,6 +71,7 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
             ->get();
 
         $this->date_for_search = Carbon::now()->format('Y-m-d');
+        $this->payment_statuses = AccountPaymentType::getPaymentTypes();
     }
 
     public function delete(Income $income): void
@@ -82,7 +89,7 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
 
     public function headers(): array
     {
-        return [['key' => 'id', 'label' => '#'], ['key' => 'customer', 'label' => 'Customer'], ['key' => 'agent', 'label' => 'Agent'], ['key' => 'account', 'label' => 'Account'], ['key' => 'amount', 'label' => 'Amount'], ['key' => 'income_date', 'label' => 'Income Date'], ['key' => 'remarks', 'label' => 'Remarks'], ['key' => 'reference', 'label' => 'Reference'], ['key' => 'created_at', 'label' => 'Created At'], ['key' => 'status', 'label' => 'Status'], ['key' => 'action_by', 'label' => 'Last Action By']];
+        return [['key' => 'id', 'label' => '#'], ['key' => 'customer', 'label' => 'Customer'], ['key' => 'agent', 'label' => 'Agent'], ['key' => 'account', 'label' => 'Account'], ['key' => 'amount', 'label' => 'Amount'], ['key' => 'income_date', 'label' => 'Income Date'], ['key' => 'remarks', 'label' => 'Remarks'], ['key' => 'reference', 'label' => 'Reference'], ['key' => 'payment_status', 'label' => 'Payment Status'], ['key' => 'created_at', 'label' => 'Created At'], ['key' => 'status', 'label' => 'Status'], ['key' => 'action_by', 'label' => 'Last Action By']];
     }
 
     public function incomes()
@@ -125,18 +132,28 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
                 'income_date' => $this->income_date,
                 'reference' => $this->reference,
                 'remarks' => $this->remarks,
-                'status' => TransactionStatus::PENDING,
+                'payment_status' => $this->payment_status,
                 'created_by' => auth()->user()->id,
             ]);
-            // TransactionService::recordTransaction([
-            //     'source_type' => Income::class,
-            //     'source_id' => $income->id,
-            //     'date' => now(),
-            //     'amount' => $this->amount,
-            //     'debit_account_id' => $this->account_id,
-            //     'credit_account_id' => ChartOfAccount::where('name', 'Revenue Income')->first()->id,
-            //     'description' => 'Income Transaction Information Record',
-            // ]);
+            if ($income->payment_status == AccountPaymentType::Paid) {
+                TransactionService::recordTransaction([
+                    'source_type' => Income::class,
+                    'source_id' => $income->id,
+                    'date' => $this->income_date ?? now()->toDateString(),
+                    'amount' => $this->amount,
+                    'debit_account_id' => $this->account_id,
+                    'credit_account_id' => ChartOfAccount::where('name', 'Revenue Income')->first()->id,
+                    'description' => 'Income Transaction - ' . ($this->reference ?? 'No Reference'),
+                ]);
+
+                $income->update([
+                    'status' => TransactionStatus::APPROVED,
+                ]);
+            }else{
+                $income->update([
+                    'status' => TransactionStatus::PENDING,
+                ]);
+            }
             $this->createModal = false;
             $this->success('Income Added Successfully');
         } catch (\Throwable $th) {
@@ -154,6 +171,7 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
         $this->income_date = $income->income_date->format('Y-m-d');
         $this->reference = $income->reference;
         $this->remarks = $income->remarks;
+        $this->payment_status = $income->payment_status?->value;
         $this->editModal = true;
     }
     public function udpateIncome()
@@ -168,6 +186,7 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
                 'income_date' => $this->income_date,
                 'reference' => $this->reference,
                 'remarks' => $this->remarks,
+                'payment_status' => $this->payment_status ?? AccountPaymentType::Unpaid,
                 'action_by' => auth()->user()->id,
             ]);
             $this->success('Income Updated Successfully');
@@ -249,7 +268,8 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
     <x-header title="Income List" size="text-xl" separator class="bg-white px-2 pt-2">
         <x-slot:actions>
             <x-input placeholder="Search..." wire:model.live="search" icon="o-bolt" inline />
-            <x-select placeholder="Select Customer" wire:model.live="customer_for_search" :options="$customers" option-label="user.name" option-value="id" />
+            <x-select placeholder="Select Customer" wire:model.live="customer_for_search" :options="$customers"
+                option-label="user.name" option-value="id" />
             <x-select placeholder="Select Account" wire:model.live="account_for_search" :options="$accounts" />
             <x-datetime wire:model.live="date_for_search" />
             <x-button label="Add Income" @click="$wire.createModal = true" icon="o-plus" class="btn-primary btn-sm" />
@@ -269,6 +289,14 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
             @endscope
             @scope('cell_account', $income)
                 {{ $income->account->name ?? 'N/A' }}
+            @endscope
+            @scope('cell_payment_status', $income)
+                @if ($income->payment_status)
+                    <x-badge value="{{ $income->payment_status->label() }}"
+                        class="{{ $income->payment_status == \App\Enum\AccountPaymentType::Paid ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700' }} p-2 text-xs font-semibold" />
+                @else
+                    <span class="text-gray-500">N/A</span>
+                @endif
             @endscope
             @scope('cell_status', $income)
                 {{ $income->status->label() ?? 'N/A' }}
@@ -293,10 +321,11 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
             @endscope
             @scope('actions', $income)
                 <div class="flex items-center gap-1">
-                    <x-button icon="o-trash" wire:click="delete({{ $income['id'] }})" wire:confirm="Are you sure?" class="btn-error btn-action"
-                        spinner="delete({{ $income['id'] }})" />
+                    <x-button icon="o-trash" wire:click="delete({{ $income['id'] }})" wire:confirm="Are you sure?"
+                        class="btn-error btn-action" spinner="delete({{ $income['id'] }})" />
 
-                    <x-button icon="s-pencil-square" class="btn-neutral btn-action" wire:click="edit({{ $income['id'] }})" />
+                    <x-button icon="s-pencil-square" class="btn-neutral btn-action"
+                        wire:click="edit({{ $income['id'] }})" />
                 </div>
             @endscope
         </x-table>
@@ -370,17 +399,19 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
         <x-form wire:submit="storeIncome">
             <p class="text-sm text-red-500 text-center font-semibold">Customer or Agent Must Be Selected</p>
             <div class="grid grid-cols-2 gap-4">
-                <x-choices label="Customers" wire:model="customer_id" placeholder="Select Customer" single option-label="user.name" option-value="id"
-                    :options="$customers" />
-                <x-choices label="Agents" wire:model="agent_id" placeholder="Select Agent" single option-label="user.name" option-value="id"
-                    :options="$agents" />
+                <x-choices label="Customers" wire:model="customer_id" placeholder="Select Customer" single
+                    option-label="user.name" option-value="id" :options="$customers" />
+                <x-choices label="Agents" wire:model="agent_id" placeholder="Select Agent" single
+                    option-label="user.name" option-value="id" :options="$agents" />
             </div>
-            <x-choices label="Accounts" wire:model="account_id" placeholder="Select Account" single required option-label="name" option-value="id"
-                :options="$accounts" />
+            <x-choices label="Accounts" wire:model="account_id" placeholder="Select Account" single required
+                option-label="name" option-value="id" :options="$accounts" />
             <x-input type="number" label="Amount" wire:model="amount" placeholder="Amount" required />
             <x-datetime wire:model="income_date" label="Income Date" />
             <x-input label="Reference" wire:model="reference" placeholder="Reference" />
             <x-input label="Remarks" wire:model="remarks" placeholder="Remarks" />
+            <x-choices label="Payment Status" wire:model="payment_status" :options="$payment_statuses" option-label="name" single
+                option-value="id" placeholder="Select Payment Status" />
             <x-slot:actions>
                 <x-button label="Cancel" @click="$wire.createModal = false" class="btn-sm" />
                 <x-button type="submit" label="Add Income" class="btn-primary btn-sm" spinner="storeIncome" />
@@ -392,17 +423,19 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
         <x-form wire:submit="udpateIncome">
             <p class="text-sm text-red-500 text-center font-semibold">Customer or Agent Must Be Selected</p>
             <div class="grid grid-cols-2 gap-4">
-                <x-choices label="Customers" wire:model="customer_id" placeholder="Select Customer" single option-label="user.name" option-value="id"
-                    :options="$customers" />
-                <x-choices label="Agents" wire:model="agent_id" placeholder="Select Agent" single option-label="user.name" option-value="id"
-                    :options="$agents" />
+                <x-choices label="Customers" wire:model="customer_id" placeholder="Select Customer" single
+                    option-label="user.name" option-value="id" :options="$customers" />
+                <x-choices label="Agents" wire:model="agent_id" placeholder="Select Agent" single
+                    option-label="user.name" option-value="id" :options="$agents" />
             </div>
-            <x-choices label="Accounts" wire:model="account_id" placeholder="Select Account" single required option-label="name"
-                option-value="id" :options="$accounts" />
+            <x-choices label="Accounts" wire:model="account_id" placeholder="Select Account" single required
+                option-label="name" option-value="id" :options="$accounts" />
             <x-input type="number" label="Amount" wire:model="amount" placeholder="Amount" required />
             <x-datetime wire:model="income_date" label="Income Date" />
             <x-input label="Reference" wire:model="reference" placeholder="Reference" />
             <x-input label="Remarks" wire:model="remarks" placeholder="Remarks" />
+            <x-choices label="Payment Status" wire:model="payment_status" :options="$payment_statuses" option-label="name" single
+                option-value="id" placeholder="Select Payment Status" />
             <x-slot:actions>
                 <x-button label="Cancel" @click="$wire.editModal = false" class="btn-sm" />
                 <x-button type="submit" label="Save" class="btn-primary btn-sm" spinner="udpateIncome" />

@@ -207,6 +207,8 @@ new #[Layout('components.layouts.admin')] #[Title('Agent List')] class extends C
                         class="btn-neutral btn-action" />
                     <x-button icon="fas.right-to-bracket" wire:click="login({{ $agent->user->id }})"
                         class="btn-primary btn-action text-white" spinner="login({{ $agent->user->id }})" />
+                    <x-button icon="o-document-text" link="/admin/agent/{{ $agent['id'] }}/ledger"
+                        class="btn-info btn-action text-white" title="Ledger Report" />
                 </div>
             @endscope
         </x-table>

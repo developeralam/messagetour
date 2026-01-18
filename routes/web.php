@@ -218,6 +218,7 @@ Route::middleware(Admin::class)->prefix('admin')->name('.admin')->group(function
         Volt::route('/sale/report', 'admin.agent.sale-report');
         Volt::route('/create', 'admin.agent.create');
         Volt::route('/{agent}/edit', 'admin.agent.edit');
+        Volt::route('/{agent}/ledger', 'admin.agent.ledger');
     });
 
     // Withdraw

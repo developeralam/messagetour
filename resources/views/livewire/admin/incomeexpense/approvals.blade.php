@@ -11,6 +11,7 @@ use Livewire\Attributes\Layout;
 use App\Services\TransactionService;
 use App\Models\ChartOfAccount;
 use Illuminate\Support\Facades\DB;
+use App\Enum\AccountPaymentType;
 
 new #[Layout('components.layouts.admin')] #[Title('Income Expense Approvals')] class extends Component {
     use Toast, WithPagination;
@@ -76,6 +77,7 @@ new #[Layout('components.layouts.admin')] #[Title('Income Expense Approvals')] c
                 // Update income status
                 $income->update([
                     'status' => TransactionStatus::APPROVED,
+                    'payment_status' => AccountPaymentType::Paid,
                     'action_by' => auth()->user()->id,
                 ]);
 
@@ -103,6 +105,7 @@ new #[Layout('components.layouts.admin')] #[Title('Income Expense Approvals')] c
         try {
             $income->update([
                 'status' => TransactionStatus::REJECTED,
+                'payment_status' => AccountPaymentType::Unpaid,
                 'action_by' => auth()->user()->id,
             ]);
             $this->success('Income rejected successfully');
