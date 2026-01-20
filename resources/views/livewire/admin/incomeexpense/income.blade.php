@@ -30,31 +30,7 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
     public array $sortBy = ['column' => 'id', 'direction' => 'desc'];
     public Income $income;
 
-    #[Rule('nullable')]
-    public $customer_id;
 
-    #[Rule('nullable')]
-    public $agent_id;
-
-    #[Rule('required')]
-    public $account_id;
-
-    #[Rule('required')]
-    public $amount;
-
-    #[Rule('nullable')]
-    public $income_date;
-
-    #[Rule('nullable')]
-    public $reference;
-
-    #[Rule('nullable')]
-    public $remarks;
-
-    #[Rule('nullable')]
-    public $payment_status;
-
-    public bool $createModal = false;
     public bool $editModal = false;
 
     public function mount(): void
@@ -116,51 +92,6 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
             ->paginate(10);
     }
 
-    public function storeIncome()
-    {
-        $this->validate();
-        if (!$this->customer_id && !$this->agent_id) {
-            $this->error('Customer or Agent Must Be Selected');
-            return;
-        }
-        try {
-            $income = Income::create([
-                'customer_id' => $this->customer_id,
-                'agent_id' => $this->agent_id,
-                'account_id' => $this->account_id,
-                'amount' => $this->amount,
-                'income_date' => $this->income_date,
-                'reference' => $this->reference,
-                'remarks' => $this->remarks,
-                'payment_status' => $this->payment_status,
-                'created_by' => auth()->user()->id,
-            ]);
-            if ($income->payment_status == AccountPaymentType::Paid) {
-                TransactionService::recordTransaction([
-                    'source_type' => Income::class,
-                    'source_id' => $income->id,
-                    'date' => $this->income_date ?? now()->toDateString(),
-                    'amount' => $this->amount,
-                    'debit_account_id' => $this->account_id,
-                    'credit_account_id' => ChartOfAccount::where('name', 'Revenue Income')->first()->id,
-                    'description' => 'Income Transaction - ' . ($this->reference ?? 'No Reference'),
-                ]);
-
-                $income->update([
-                    'status' => TransactionStatus::APPROVED,
-                ]);
-            }else{
-                $income->update([
-                    'status' => TransactionStatus::PENDING,
-                ]);
-            }
-            $this->createModal = false;
-            $this->success('Income Added Successfully');
-        } catch (\Throwable $th) {
-            $this->createModal = false;
-            $this->error($th->getMessage());
-        }
-    }
     public function edit(Income $income)
     {
         $this->income = $income;
@@ -272,7 +203,7 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
                 option-label="user.name" option-value="id" />
             <x-select placeholder="Select Account" wire:model.live="account_for_search" :options="$accounts" />
             <x-datetime wire:model.live="date_for_search" />
-            <x-button label="Add Income" @click="$wire.createModal = true" icon="o-plus" class="btn-primary btn-sm" />
+            <x-button label="Add Income" wire:navigate href="/admin/income/create" icon="o-plus" class="btn-primary btn-sm" />
         </x-slot:actions>
     </x-header>
 
@@ -395,29 +326,6 @@ new #[Layout('components.layouts.admin')] #[Title('Income List')] class extends 
 
     </x-card>
 
-    <x-modal wire:model="createModal" title="Add New Income" separator>
-        <x-form wire:submit="storeIncome">
-            <p class="text-sm text-red-500 text-center font-semibold">Customer or Agent Must Be Selected</p>
-            <div class="grid grid-cols-2 gap-4">
-                <x-choices label="Customers" wire:model="customer_id" placeholder="Select Customer" single
-                    option-label="user.name" option-value="id" :options="$customers" />
-                <x-choices label="Agents" wire:model="agent_id" placeholder="Select Agent" single
-                    option-label="user.name" option-value="id" :options="$agents" />
-            </div>
-            <x-choices label="Accounts" wire:model="account_id" placeholder="Select Account" single required
-                option-label="name" option-value="id" :options="$accounts" />
-            <x-input type="number" label="Amount" wire:model="amount" placeholder="Amount" required />
-            <x-datetime wire:model="income_date" label="Income Date" />
-            <x-input label="Reference" wire:model="reference" placeholder="Reference" />
-            <x-input label="Remarks" wire:model="remarks" placeholder="Remarks" />
-            <x-choices label="Payment Status" wire:model="payment_status" :options="$payment_statuses" option-label="name" single
-                option-value="id" placeholder="Select Payment Status" />
-            <x-slot:actions>
-                <x-button label="Cancel" @click="$wire.createModal = false" class="btn-sm" />
-                <x-button type="submit" label="Add Income" class="btn-primary btn-sm" spinner="storeIncome" />
-            </x-slot:actions>
-        </x-form>
-    </x-modal>
 
     <x-modal wire:model="editModal" title="Update Income" separator>
         <x-form wire:submit="udpateIncome">

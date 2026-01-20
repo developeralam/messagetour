@@ -40,7 +40,7 @@ new #[Layout('components.layouts.admin-auth')] #[Title('Admin Login')] class ext
         <!-- Left Panel -->
         <div class="bg-green-500 text-white p-8 flex flex-col justify-center">
             <div class="mb-6">
-                <img src="{{ $globalSettings->logo_link ?? '/logo.png' }}" alt="Logo">
+                <img src="{{ $globalSettings->logo_link ?? '/logo.png' }}" alt="Logo" class="h-16 w-auto object-contain">
             </div>
             <h2 class="text-2xl md:text-3xl font-bold mb-1">Welcome to
                 {{ $globalSettings->application_name ?? 'FlyValy' }}</h2>

@@ -117,6 +117,7 @@ Route::middleware(Admin::class)->prefix('admin')->name('.admin')->group(function
 
     // Income Expense Routes
     Volt::route('/income/list', 'admin.incomeexpense.income');
+    Volt::route('/income/create', 'admin.incomeexpense.create');
     Volt::route('/expense/list', 'admin.incomeexpense.expense');
     Volt::route('/income-expense/approvals', 'admin.incomeexpense.approvals');
     // Invoice Routes
