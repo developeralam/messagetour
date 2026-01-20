@@ -102,24 +102,33 @@ new #[Layout('components.layouts.admin')] #[Title('Expense List')] class extends
     {
         $this->validate();
         try {
+            // Check if user is Super Admin
+            $isSuperAdmin = auth()->user()->hasRole('Super Admin');
+
             $expense = Expense::create([
                 'expenses_head_id' => $this->expenses_head_id,
                 'account_id' => $this->account_id,
                 'amount' => $this->amount,
                 'expense_date' => $this->expense_date,
                 'remarks' => $this->remarks,
-                'status' => TransactionStatus::PENDING,
+                'status' => $isSuperAdmin ? TransactionStatus::APPROVED : TransactionStatus::PENDING,
                 'created_by' => auth()->user()->id,
             ]);
-            // TransactionService::recordTransaction([
-            //     'source_type' => Expense::class,
-            //     'source_id' => $expense->id,
-            //     'date' => now(),
-            //     'amount' => $this->amount,
-            //     'debit_account_id' => $this->expenses_head_id,
-            //     'credit_account_id' => $this->account_id,
-            //     'description' => 'Expense Transaction Information Record',
-            // ]);
+
+            if ($isSuperAdmin) {
+                // Super Admin creates → transaction happens immediately
+                TransactionService::recordTransaction([
+                    'source_type' => Expense::class,
+                    'source_id' => $expense->id,
+                    'date' => $this->expense_date ?? now()->toDateString(),
+                    'amount' => $this->amount,
+                    'debit_account_id' => $this->expenses_head_id,
+                    'credit_account_id' => $this->account_id,
+                    'description' => 'Expense Transaction - ' . ($this->remarks ?? 'No Remarks'),
+                ]);
+            }
+            // Non-Super Admin creates → PENDING, needs approval (no transaction)
+
             $this->createModal = false;
             $this->success('Expense Added Successfully');
         } catch (\Throwable $th) {

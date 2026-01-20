@@ -154,21 +154,32 @@ new #[Layout('components.layouts.admin')] #[Title('Create Income')] class extend
                 ]);
             }
 
-            if ($income->payment_status == AccountPaymentType::Paid) {
-                TransactionService::recordTransaction([
-                    'source_type' => Income::class,
-                    'source_id' => $income->id,
-                    'date' => $this->income_date ?? now()->toDateString(),
-                    'amount' => $this->amount,
-                    'debit_account_id' => $this->account_id,
-                    'credit_account_id' => ChartOfAccount::where('name', 'Revenue Income')->first()->id,
-                    'description' => 'Income Transaction - ' . ($this->reference ?? 'No Reference'),
-                ]);
+            // Check if user is Super Admin
+            $isSuperAdmin = auth()->user()->hasRole('Super Admin');
 
-                $income->update([
-                    'status' => TransactionStatus::APPROVED,
-                ]);
+            if ($isSuperAdmin) {
+                // Super Admin creates → transaction happens immediately if payment_status is Paid
+                if ($income->payment_status == AccountPaymentType::Paid) {
+                    TransactionService::recordTransaction([
+                        'source_type' => Income::class,
+                        'source_id' => $income->id,
+                        'date' => $this->income_date ?? now()->toDateString(),
+                        'amount' => $this->amount,
+                        'debit_account_id' => $this->account_id,
+                        'credit_account_id' => ChartOfAccount::where('name', 'Revenue Income')->first()->id,
+                        'description' => 'Income Transaction - ' . ($this->reference ?? 'No Reference'),
+                    ]);
+
+                    $income->update([
+                        'status' => TransactionStatus::APPROVED,
+                    ]);
+                } else {
+                    $income->update([
+                        'status' => TransactionStatus::PENDING,
+                    ]);
+                }
             } else {
+                // Non-Super Admin creates → always PENDING, needs approval (no transaction)
                 $income->update([
                     'status' => TransactionStatus::PENDING,
                 ]);

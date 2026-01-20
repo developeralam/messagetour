@@ -85,7 +85,7 @@ new #[Layout('components.layouts.admin')] #[Title('Income Expense Approvals')] c
                 TransactionService::recordTransaction([
                     'source_type' => Income::class,
                     'source_id' => $income->id,
-                    'date' => now()->toDateString(),
+                    'date' => $income->income_date ? $income->income_date->toDateString() : now()->toDateString(),
                     'amount' => $income->amount,
                     'debit_account_id' => $income->account_id,
                     'credit_account_id' => ChartOfAccount::where('name', 'Revenue Income')->first()->id,
@@ -128,7 +128,7 @@ new #[Layout('components.layouts.admin')] #[Title('Income Expense Approvals')] c
                 TransactionService::recordTransaction([
                     'source_type' => Expense::class,
                     'source_id' => $expense->id,
-                    'date' => now()->toDateString(),
+                    'date' => $expense->expense_date ? $expense->expense_date->toDateString() : now()->toDateString(),
                     'amount' => $expense->amount,
                     'debit_account_id' => $expense->expenses_head_id,
                     'credit_account_id' => $expense->account_id,

@@ -65,7 +65,7 @@ new #[Layout('components.layouts.admin')] #[Title('Add New Role')] class extends
 <div>
     <x-header title="Add New Role" size="text-xl" separator class="bg-white px-2 pt-2">
         <x-slot:actions>
-            <x-button label="Role List" icon="o-plus" link="/admin/role/list" class="btn-primary btn-sm" />
+            <x-button label="Role List" icon="fas.arrow-left" link="/admin/role/list" class="btn-primary btn-sm" />
         </x-slot:actions>
     </x-header>
     <x-form wire:submit="storeRole">
