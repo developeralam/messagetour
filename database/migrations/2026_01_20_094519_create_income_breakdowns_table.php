@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('income_id')->constrained('incomes')->cascadeOnDelete();
             $table->string('title')->nullable();
             $table->decimal('amount', 16, 2);
+            $table->softDeletes();
             $table->timestamps();
         });
     }
