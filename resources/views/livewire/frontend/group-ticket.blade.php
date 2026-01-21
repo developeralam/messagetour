@@ -22,7 +22,7 @@ new #[Layout('components.layouts.app')] #[Title('Group Ticket')] class extends C
     public array $headers;
     public $type = GroupFlightType::Regular;
 
-    #[Rule('required')]
+    #[Rule('nullable')]
     public $visa;
 
     #[Rule('required')]
@@ -41,7 +41,7 @@ new #[Layout('components.layouts.app')] #[Title('Group Ticket')] class extends C
     }
     public function flights()
     {
-        return GroupFlight::query()->where('type', $this->type)->latest()->paginate(5);
+        return GroupFlight::query()->where('type', $this->type)->latest()->paginate(20);
     }
     public function apply(GroupFlight $groupFlight)
     {
@@ -72,7 +72,7 @@ new #[Layout('components.layouts.app')] #[Title('Group Ticket')] class extends C
             $booking = GroupFlightBooking::create([
                 'user_id' => auth()->user()->id,
                 'group_flight_id' => $groupFlight->id,
-                'visa' => $storedVisaPath,
+                'visa' => $storedVisaPath ?? null,
                 'passport' => $storedPassportPath,
             ]);
 
