@@ -1,8 +1,9 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
+use App\Enum\BankStatus;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
 
 return new class extends Migration
 {
@@ -20,6 +21,7 @@ return new class extends Migration
             $table->string('swift_code');
             $table->integer('routing_no');
             $table->foreignId('country_id')->constrained('countries');
+            $table->tinyInteger('status')->default(BankStatus::Active);
             $table->foreignId('action_by')->nullable()->constrained('users');
             $table->softDeletes();
             $table->timestamps();
