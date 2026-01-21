@@ -32,22 +32,22 @@ class DatabaseSeeder extends Seeder
         $this->call(ChartOfAccountSeeder::class);
 
         // Bulk Hotel Insert
-        Hotel::factory()->count(50)->create();
+        // Hotel::factory()->count(50)->create();
 
         // Bulk Tour Insert
-        Tour::factory()->count(50)->create();
+        // Tour::factory()->count(50)->create();
 
         // Bulk TravelProduct Insert
-        TravelProduct::factory()->count(50)->create();
+        // TravelProduct::factory()->count(50)->create();
 
         // Bulk Visa Insert
-        Visa::factory()->count(50)->create();
+        // Visa::factory()->count(50)->create();
 
         // Bulk Group Flight Insert
-        GroupFlight::factory()->count(50)->create();
+        // GroupFlight::factory()->count(50)->create();
 
         // Bulk Offer Insert
-        Offer::factory()->count(50)->create();
+        // Offer::factory()->count(50)->create();
         // Seed payment gateway
     }
 }
